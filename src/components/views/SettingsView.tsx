@@ -54,8 +54,9 @@ export const SettingsView = ({ lang, onLangChange, onReset, onImport, subscripti
     return (
         <div className="space-y-3">
             {/* Donation (Top Priority) */}
-            <a href="https://buy.stripe.com/test_9B6eVf984fJ8gHRg950x200" target="_blank" rel="noopener noreferrer" className="w-full bg-[#635BFF] text-white p-4 rounded-2xl border border-[#635BFF] shadow-sm flex items-center justify-between text-sm font-bold hover:brightness-110 transition-all mb-4">
-                <span className="flex items-center gap-3"><Wallet size={20} className="text-white" /> {t('settings.btnDonation')}</span>
+            {/* Author Link */}
+            <a href="https://note.com/ibdaddy" target="_blank" rel="noopener noreferrer" className="w-full bg-[#2c2c2c] text-white p-4 rounded-2xl border border-[#2c2c2c] shadow-sm flex items-center justify-between text-sm font-bold hover:brightness-110 transition-all mb-4">
+                <span className="flex items-center gap-3"><span className="text-xl">📝</span> {t('settings.note')}</span>
                 <ExternalLink size={16} className="opacity-80" />
             </a>
 

@@ -1,5 +1,5 @@
 // State for Chart Type
-const [chartType, setChartType] = useState<ChartType>('category');
+const [chartType, setChartType] = useState<ChartType>('satisfaction');
 
 // DYNAMIC CHART DATA
 const chartData = useMemo(() => {

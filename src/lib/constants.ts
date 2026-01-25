@@ -22,7 +22,8 @@ export const TRANSLATIONS = {
             backup: 'バックアップ', backupDesc: 'データをファイルに保存します。', btnBackup: 'データを保存',
             restore: '復元', restoreDesc: '保存したファイルからデータを復元します。', restoreWarn: '※上書きされます', btnRestore: 'ファイルを選択',
             reset: 'データ初期化', btnReset: 'すべてのデータを削除',
-            donation: '開発等を支援', btnDonation: '開発者を支援する (励みになります！)'
+            donation: '開発等を支援', btnDonation: '開発者を支援する (励みになります！)',
+            note: '開発者のNote (ibdaddy)'
         },
         modal: {
             add: '新規追加', edit: '編集', update: '更新する', addBtn: '追加する',

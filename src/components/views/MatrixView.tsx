@@ -35,13 +35,15 @@ export const MatrixView = ({ subscriptions, onEdit, lang }: MatrixViewProps) => 
     };
 
     return (
-        <div className="bg-skin-card rounded-2xl p-4 border border-skin-border shadow-skin flex flex-col h-[calc(100vh-140px)] md:h-auto md:min-h-[600px]">
+        <div className="bg-skin-card rounded-2xl p-3 border border-skin-border shadow-skin flex flex-col md:h-auto md:min-h-[600px]">
             <p className="text-[10px] md:text-xs text-skin-subtext mb-2 text-center">{t('matrix.description')}</p>
 
-            <div className="flex-1 grid grid-rows-[auto_1fr] gap-1 min-h-0">
-                {/* Header Row */}
-                <div className="grid grid-cols-[30px_1fr_1fr_1fr_1fr] gap-1 text-center">
-                    <div className="flex items-end justify-center pb-1 text-[10px] md:text-xs text-skin-subtext">{t('matrix.axisX')}</div>
+            <div className="grid grid-cols-[auto_1fr] gap-1">
+                {/* Empty Corner */}
+                <div className="w-[30px]"></div>
+
+                {/* X-Axis Header */}
+                <div className="grid grid-cols-4 gap-1 text-center">
                     {FREQUENCY_LEVELS.map(f => (
                         <div key={f} className="text-[10px] md:text-sm font-bold text-skin-text bg-skin-base rounded p-1 flex items-center justify-center leading-tight">
                             {getDisplayLabel(f).replace('毎日', '毎日').replace('週1', '週1').replace('月1', '月1').replace('ほぼ未使用', '稀に')}
@@ -49,33 +51,35 @@ export const MatrixView = ({ subscriptions, onEdit, lang }: MatrixViewProps) => 
                     ))}
                 </div>
 
-                {/* Matrix Content */}
-                <div className="grid grid-rows-3 gap-1 min-h-0">
+                {/* Matrix Rows (Y-Axis + Cells) */}
+                <div className="contents">
                     {SATISFACTION_LEVELS.map(sat => (
-                        <div key={sat} className="grid grid-cols-[30px_1fr_1fr_1fr_1fr] gap-1 min-h-0">
+                        <>
                             {/* Y-Axis Label */}
-                            <div className="bg-skin-base rounded text-[10px] md:text-sm font-bold text-skin-text flex items-center justify-center writing-vertical-jr">
+                            <div className="bg-skin-base rounded text-[10px] md:text-sm font-bold text-skin-text flex items-center justify-center writing-vertical-jr h-24 md:h-32">
                                 {getDisplayLabel(sat)}
                             </div>
 
-                            {/* Cells */}
-                            {FREQUENCY_LEVELS.map(freq => {
-                                const subs = matrixData[sat][freq];
-                                const cellColor = getMatrixCellColor(sat, freq);
-                                return (
-                                    <div key={freq} className={`rounded border-2 align-top ${cellColor} border-opacity-50 relative min-h-0 flex flex-col p-0.5 md:p-1`}>
-                                        <div className="flex-1 overflow-y-auto space-y-1 scrollbar-hide">
-                                            {subs.map(sub => (
-                                                <div key={sub.id} onClick={() => onEdit(sub)} className="bg-white/90 dark:bg-black/40 backdrop-blur-sm rounded p-1 md:p-2 shadow-sm border border-black/5 dark:border-white/10 cursor-pointer hover:scale-[1.02] transition-transform">
-                                                    <p className="font-bold truncate text-[9px] md:text-xs text-skin-text leading-tight">{sub.name}</p>
-                                                    <p className="text-[8px] md:text-[10px] text-skin-subtext leading-none mt-0.5">{t('currency')}{getMonthlyAmount(sub).toLocaleString()}</p>
-                                                </div>
-                                            ))}
+                            {/* Row Cells */}
+                            <div className="grid grid-cols-4 gap-1 h-24 md:h-32">
+                                {FREQUENCY_LEVELS.map(freq => {
+                                    const subs = matrixData[sat][freq];
+                                    const cellColor = getMatrixCellColor(sat, freq);
+                                    return (
+                                        <div key={freq} className={`rounded border-2 align-top ${cellColor} border-opacity-50 relative flex flex-col p-0.5 md:p-1 overflow-hidden`}>
+                                            <div className="flex-1 overflow-y-auto space-y-1 scrollbar-hide">
+                                                {subs.map(sub => (
+                                                    <div key={sub.id} onClick={() => onEdit(sub)} className="bg-white/90 dark:bg-black/40 backdrop-blur-sm rounded p-1 md:p-2 shadow-sm border border-black/5 dark:border-white/10 cursor-pointer hover:scale-[1.02] transition-transform">
+                                                        <p className="font-bold truncate text-[9px] md:text-xs text-skin-text leading-tight">{sub.name}</p>
+                                                        {/* <p className="text-[8px] md:text-[10px] text-skin-subtext leading-none mt-0.5">{t('currency')}{getMonthlyAmount(sub).toLocaleString()}</p> */}
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                                    );
+                                })}
+                            </div>
+                        </>
                     ))}
                 </div>
             </div>
