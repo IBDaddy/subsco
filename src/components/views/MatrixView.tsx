@@ -35,15 +35,15 @@ export const MatrixView = ({ subscriptions, onEdit, lang }: MatrixViewProps) => 
     };
 
     return (
-        <div className="bg-skin-card rounded-2xl p-4 border border-skin-border shadow-skin flex flex-col h-[calc(100vh-140px)]">
-            <p className="text-[10px] text-skin-subtext mb-2 text-center">{t('matrix.description')}</p>
+        <div className="bg-skin-card rounded-2xl p-4 border border-skin-border shadow-skin flex flex-col h-[calc(100vh-140px)] md:h-auto md:min-h-[600px]">
+            <p className="text-[10px] md:text-xs text-skin-subtext mb-2 text-center">{t('matrix.description')}</p>
 
             <div className="flex-1 grid grid-rows-[auto_1fr] gap-1 min-h-0">
                 {/* Header Row */}
                 <div className="grid grid-cols-[30px_1fr_1fr_1fr_1fr] gap-1 text-center">
-                    <div className="flex items-end justify-center pb-1 text-[10px] text-skin-subtext">{t('matrix.axisX')}</div>
+                    <div className="flex items-end justify-center pb-1 text-[10px] md:text-xs text-skin-subtext">{t('matrix.axisX')}</div>
                     {FREQUENCY_LEVELS.map(f => (
-                        <div key={f} className="text-[10px] font-bold text-skin-text bg-skin-base rounded p-1 flex items-center justify-center leading-tight">
+                        <div key={f} className="text-[10px] md:text-sm font-bold text-skin-text bg-skin-base rounded p-1 flex items-center justify-center leading-tight">
                             {getDisplayLabel(f).replace('毎日', '毎日').replace('週1', '週1').replace('月1', '月1').replace('ほぼ未使用', '稀に')}
                         </div>
                     ))}
@@ -54,7 +54,7 @@ export const MatrixView = ({ subscriptions, onEdit, lang }: MatrixViewProps) => 
                     {SATISFACTION_LEVELS.map(sat => (
                         <div key={sat} className="grid grid-cols-[30px_1fr_1fr_1fr_1fr] gap-1 min-h-0">
                             {/* Y-Axis Label */}
-                            <div className="bg-skin-base rounded text-[10px] font-bold text-skin-text flex items-center justify-center writing-vertical-jr">
+                            <div className="bg-skin-base rounded text-[10px] md:text-sm font-bold text-skin-text flex items-center justify-center writing-vertical-jr">
                                 {getDisplayLabel(sat)}
                             </div>
 
@@ -63,12 +63,12 @@ export const MatrixView = ({ subscriptions, onEdit, lang }: MatrixViewProps) => 
                                 const subs = matrixData[sat][freq];
                                 const cellColor = getMatrixCellColor(sat, freq);
                                 return (
-                                    <div key={freq} className={`rounded border-2 align-top ${cellColor} border-opacity-50 relative min-h-0 flex flex-col`}>
-                                        <div className="flex-1 overflow-y-auto p-0.5 space-y-1 scrollbar-hide">
+                                    <div key={freq} className={`rounded border-2 align-top ${cellColor} border-opacity-50 relative min-h-0 flex flex-col p-0.5 md:p-1`}>
+                                        <div className="flex-1 overflow-y-auto space-y-1 scrollbar-hide">
                                             {subs.map(sub => (
-                                                <div key={sub.id} onClick={() => onEdit(sub)} className="bg-white/90 dark:bg-black/40 backdrop-blur-sm rounded p-1 shadow-sm border border-black/5 dark:border-white/10 cursor-pointer">
-                                                    <p className="font-bold truncate text-[9px] text-skin-text leading-tight">{sub.name}</p>
-                                                    <p className="text-[8px] text-skin-subtext leading-none mt-0.5">{getMonthlyAmount(sub).toLocaleString()}</p>
+                                                <div key={sub.id} onClick={() => onEdit(sub)} className="bg-white/90 dark:bg-black/40 backdrop-blur-sm rounded p-1 md:p-2 shadow-sm border border-black/5 dark:border-white/10 cursor-pointer hover:scale-[1.02] transition-transform">
+                                                    <p className="font-bold truncate text-[9px] md:text-xs text-skin-text leading-tight">{sub.name}</p>
+                                                    <p className="text-[8px] md:text-[10px] text-skin-subtext leading-none mt-0.5">{t('currency')}{getMonthlyAmount(sub).toLocaleString()}</p>
                                                 </div>
                                             ))}
                                         </div>

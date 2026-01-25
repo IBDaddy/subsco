@@ -1,9 +1,8 @@
 import { useState, useMemo } from 'react';
-import { Pause, Play, Trash2, Edit2, ChevronUp, ChevronDown, Tag, Smile, Clock, Meh, Frown } from 'lucide-react';
+import { Pause, Play, Trash2, Edit2, ChevronUp, ChevronDown, Tag, Smile, Meh, Frown, Tv, Briefcase, Heart, GraduationCap, Home, MoreHorizontal } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { TRANSLATIONS, CATEGORIES, CATEGORY_COLORS, SATISFACTION_LEVELS, SATISFACTION_COLORS, FREQUENCY_LEVELS } from '../../lib/constants';
-import { FREQ_COLORS } from '../../lib/theme';
+import { TRANSLATIONS, CATEGORIES, CATEGORY_COLORS, SATISFACTION_LEVELS, SATISFACTION_COLORS } from '../../lib/constants';
 import { getDaysUntilBilling, getCancelScore, getCancelRecommendation, getUrgencyColor, getMonthlyAmount } from '../../lib/utils';
 import { Subscription, Language } from '../../types';
 
@@ -15,7 +14,7 @@ interface SubscriptionListProps {
     lang: Language;
 }
 
-type ChartType = 'category' | 'satisfaction' | 'frequency';
+type ChartType = 'category' | 'satisfaction';
 
 export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStatus, lang }: SubscriptionListProps) => {
     const t = (path: string) => path.split('.').reduce((obj: any, key) => obj && obj[key], TRANSLATIONS[lang]) || path;
@@ -32,6 +31,16 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
     const totalMonthly = useMemo(() => activeSubs.reduce((sum, sub) => sum + getMonthlyAmount(sub), 0), [activeSubs]);
     const totalYearly = useMemo(() => activeSubs.reduce((sum, sub) => sum + (sub.cycle === 'yearly' ? sub.amount : sub.amount * 12), 0), [activeSubs]);
 
+    // Icon Mapping
+    const CATEGORY_ICONS: Record<string, any> = {
+        'エンタメ': Tv,
+        '仕事': Briefcase,
+        '健康': Heart,
+        '教育': GraduationCap,
+        '生活': Home,
+        'その他': MoreHorizontal
+    };
+
     // Chart Logic
     const chartData = useMemo(() => {
         let rawData: { name: string; value: number; color: string }[] = [];
@@ -46,11 +55,6 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
                 const total = activeSubs.filter(s => s.satisfaction === sat).reduce((sum, s) => sum + getMonthlyAmount(s), 0);
                 return { name: getDisplayLabel(sat), value: total, color: SATISFACTION_COLORS[sat] };
             });
-        } else if (chartType === 'frequency') {
-            rawData = FREQUENCY_LEVELS.map((freq) => {
-                const total = activeSubs.filter(s => s.frequency === freq).reduce((sum, s) => sum + getMonthlyAmount(s), 0);
-                return { name: getDisplayLabel(freq), value: total, color: FREQ_COLORS[freq] };
-            });
         }
 
         const filtered = rawData.filter(d => d.value > 0);
@@ -58,9 +62,7 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
     }, [activeSubs, chartType, lang]);
 
     const toggleChartType = () => {
-        if (chartType === 'category') setChartType('satisfaction');
-        else if (chartType === 'satisfaction') setChartType('frequency');
-        else setChartType('category');
+        setChartType(prev => prev === 'category' ? 'satisfaction' : 'category');
     };
 
     const sortedSubs = useMemo(() => {
@@ -133,7 +135,6 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
                                     >
                                         {chartType === 'category' && <Tag size={18} />}
                                         {chartType === 'satisfaction' && <Smile size={18} />}
-                                        {chartType === 'frequency' && <Clock size={18} />}
                                     </motion.div>
                                 </AnimatePresence>
                             </div>
@@ -141,14 +142,13 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
 
                         {/* Chart Type Indicator */}
                         <div className="flex gap-1 mt-1">
-                            {['category', 'satisfaction', 'frequency'].map(type => (
+                            {['category', 'satisfaction'].map(type => (
                                 <div
                                     key={type}
                                     className={`w-1.5 h-1.5 rounded-full transition-colors ${chartType === type ? 'bg-skin-text' : 'bg-skin-border'}`}
                                 />
                             ))}
                         </div>
-                        {/* Satisfaction Legend Removed to avoid confusion */}
                     </div>
                 </div>
             </div>
@@ -172,6 +172,9 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
                         {sortedSubs.map(sub => {
                             const days = getDaysUntilBilling(sub.nextBilling);
                             const rec = getCancelRecommendation(getCancelScore(sub), lang);
+                            const CategoryIcon = CATEGORY_ICONS[sub.category] || MoreHorizontal;
+                            const categoryColor = CATEGORY_COLORS[sub.category] || '#94a3b8';
+
                             return (
                                 <motion.div
                                     layout
@@ -181,24 +184,31 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
                                     key={sub.id}
                                     className="bg-skin-card rounded-2xl p-4 shadow-sm border border-skin-border hover:border-skin-subtext/30 transition-all group relative overflow-hidden"
                                 >
-                                    <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: sub.color }}></div>
+                                    <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: categoryColor }}></div>
 
                                     <div className="pl-3 flex justify-between items-start">
-                                        <div>
-                                            <h3 className="font-bold text-base mb-0.5">{sub.name}</h3>
-                                            <p className="text-xs text-skin-subtext font-medium flex items-center gap-2">
-                                                {t('currency')}{sub.amount.toLocaleString()} <span className="opacity-60">/ {sub.cycle === 'monthly' ? t('cycle.mo') : t('cycle.yr')}</span>
-                                                {rec && <span className={`px-1.5 py-0.5 rounded text-[9px] border ${rec.color.replace('bg-', 'border-').replace('text-', 'text-')} bg-transparent`}>{rec.label}</span>}
-                                            </p>
+                                        <div className="flex items-start gap-3">
+                                            {/* Category Icon */}
+                                            <div className="p-2 rounded-xl bg-skin-base shrink-0" style={{ color: categoryColor }}>
+                                                <CategoryIcon size={20} />
+                                            </div>
+
+                                            <div>
+                                                <h3 className="font-bold text-base mb-0.5 leading-tight">{sub.name}</h3>
+                                                <p className="text-xs text-skin-subtext font-medium flex items-center gap-2">
+                                                    {t('currency')}{sub.amount.toLocaleString()} <span className="opacity-60">/ {sub.cycle === 'monthly' ? t('cycle.mo') : t('cycle.yr')}</span>
+                                                    {rec && <span className={`px-1.5 py-0.5 rounded text-[9px] border ${rec.color.replace('bg-', 'border-').replace('text-', 'text-')} bg-transparent`}>{rec.label}</span>}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className={`text-xs font-bold text-right ${getUrgencyColor(days)}`}>
+                                        <div className={`text-xs font-bold text-right whitespace-nowrap ${getUrgencyColor(days)}`}>
                                             {days < 0 ? t('card.expired') : days === 0 ? t('card.today') : t('card.daysLeft').replace('{days}', days.toString())}
                                         </div>
                                     </div>
 
                                     <div className="pl-3 mt-4 flex justify-between items-center border-t border-skin-border pt-3">
                                         <div className="flex gap-3 text-xs text-skin-subtext">
-                                            <span>{getDisplayLabel(sub.category)}</span>
+                                            <span style={{ color: categoryColor }} className="font-bold">{getDisplayLabel(sub.category)}</span>
                                             <span>・</span>
                                             <span className="flex items-center gap-1">
                                                 {sub.satisfaction === '高' && <Smile size={14} className="text-emerald-500" />}
