@@ -88,16 +88,16 @@ return (
         <div className="bg-skin-card rounded-2xl p-6 border border-skin-border shadow-skin flex flex-col items-center relative">
             <div className="flex bg-skin-base rounded-lg p-1 mb-4 absolute top-4 right-4 z-10">
                 <button
-                    onClick={() => setChartType('category')}
-                    className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${chartType === 'category' ? 'bg-skin-card shadow text-skin-text' : 'text-skin-subtext'}`}
-                >
-                    {t('analysis.category')}
-                </button>
-                <button
                     onClick={() => setChartType('satisfaction')}
                     className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${chartType === 'satisfaction' ? 'bg-skin-card shadow text-skin-text' : 'text-skin-subtext'}`}
                 >
                     {t('analysis.satisfaction')}
+                </button>
+                <button
+                    onClick={() => setChartType('category')}
+                    className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${chartType === 'category' ? 'bg-skin-card shadow text-skin-text' : 'text-skin-subtext'}`}
+                >
+                    {t('analysis.category')}
                 </button>
             </div>
 
