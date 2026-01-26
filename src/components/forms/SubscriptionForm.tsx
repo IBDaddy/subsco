@@ -109,17 +109,23 @@ export const SubscriptionForm = ({ initialData, onSubmit, lang }: SubscriptionFo
                 >
                     {CATEGORIES.map(c => <option key={c} value={c}>{getDisplayLabel(c)}</option>)}
                 </select>
-                <div className="flex gap-2 overflow-x-auto py-1 scrollbar-hide">
-                    {COLOR_PALETTE.map(c => (
-                        <button
-                            key={c}
-                            type="button"
-                            onClick={() => setFormData({ ...formData, color: c })}
-                            className={`w-6 h-6 rounded-full border-2 transition-all flex-shrink-0 ${formData.color === c ? 'border-skin-text scale-110' : 'border-transparent'}`}
-                            style={{ backgroundColor: c }}
-                        />
-                    ))}
-                </div>
+            </div>
+
+            <div className="bg-skin-base p-1 rounded-lg flex border border-skin-border mb-4">
+                <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, type: 'subscription' })}
+                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${(!formData.type || formData.type === 'subscription') ? 'bg-skin-card shadow text-skin-text' : 'text-skin-subtext'}`}
+                >
+                    {t('type.subscription')}
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, type: 'education' })}
+                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${formData.type === 'education' ? 'bg-skin-card shadow text-skin-text' : 'text-skin-subtext'}`}
+                >
+                    {t('type.education')}
+                </button>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

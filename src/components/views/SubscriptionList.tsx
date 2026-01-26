@@ -21,6 +21,7 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
     const getDisplayLabel = (key: string) => (TRANSLATIONS[lang].dataMap as any)[key] || key;
 
     const [sortKey, setSortKey] = useState('date');
+    const [filterType, setFilterType] = useState<'all' | 'subscription' | 'education'>('all');
     const [showPaused, setShowPaused] = useState(false);
     const [displayCycle, setDisplayCycle] = useState<'monthly' | 'yearly'>('monthly');
     const [chartType, setChartType] = useState<ChartType>('category');
@@ -28,8 +29,13 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
     const activeSubs = useMemo(() => subscriptions.filter(s => s.isActive), [subscriptions]);
     const pausedSubs = useMemo(() => subscriptions.filter(s => !s.isActive), [subscriptions]);
 
-    const totalMonthly = useMemo(() => activeSubs.reduce((sum, sub) => sum + getMonthlyAmount(sub), 0), [activeSubs]);
-    const totalYearly = useMemo(() => activeSubs.reduce((sum, sub) => sum + (sub.cycle === 'yearly' ? sub.amount : sub.amount * 12), 0), [activeSubs]);
+    const filteredSubs = useMemo(() => {
+        if (filterType === 'all') return activeSubs;
+        return activeSubs.filter(s => (s.type || 'subscription') === filterType);
+    }, [activeSubs, filterType]);
+
+    const totalMonthly = useMemo(() => filteredSubs.reduce((sum, sub) => sum + getMonthlyAmount(sub), 0), [filteredSubs]);
+    const totalYearly = useMemo(() => filteredSubs.reduce((sum, sub) => sum + (sub.cycle === 'yearly' ? sub.amount : sub.amount * 12), 0), [filteredSubs]);
 
     // Icon Mapping
     const CATEGORY_ICONS: Record<string, any> = {
@@ -47,33 +53,40 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
 
         if (chartType === 'category') {
             rawData = CATEGORIES.map((cat) => {
-                const total = activeSubs.filter(s => s.category === cat).reduce((sum, s) => sum + getMonthlyAmount(s), 0);
+                const total = filteredSubs.filter(s => s.category === cat).reduce((sum, s) => sum + getMonthlyAmount(s), 0);
                 return { name: getDisplayLabel(cat), value: total, color: CATEGORY_COLORS[cat] || '#cbd5e1' };
             });
         } else if (chartType === 'satisfaction') {
             rawData = SATISFACTION_LEVELS.map((sat) => {
-                const total = activeSubs.filter(s => s.satisfaction === sat).reduce((sum, s) => sum + getMonthlyAmount(s), 0);
+                const total = filteredSubs.filter(s => s.satisfaction === sat).reduce((sum, s) => sum + getMonthlyAmount(s), 0);
                 return { name: getDisplayLabel(sat), value: total, color: SATISFACTION_COLORS[sat] };
             });
         }
 
         const filtered = rawData.filter(d => d.value > 0);
         return filtered.length > 0 ? filtered : [{ name: 'None', value: 1, color: '#f1f5f9' }];
-    }, [activeSubs, chartType, lang]);
+    }, [filteredSubs, chartType, lang]);
 
     const toggleChartType = () => {
         setChartType(prev => prev === 'category' ? 'satisfaction' : 'category');
     };
 
     const sortedSubs = useMemo(() => {
-        const list = [...activeSubs];
+        const list = [...filteredSubs];
         if (sortKey === 'price_desc') return list.sort((a, b) => getMonthlyAmount(b) - getMonthlyAmount(a));
         if (sortKey === 'satisfaction') {
             const score: Record<string, number> = { '低': 2, '中': 1, '高': 0 };
             return list.sort((a, b) => score[b.satisfaction] - score[a.satisfaction]);
         }
+        if (sortKey === 'category') {
+            return list.sort((a, b) => {
+                const idxA = CATEGORIES.indexOf(a.category);
+                const idxB = CATEGORIES.indexOf(b.category);
+                return idxA - idxB;
+            });
+        }
         return list.sort((a, b) => getDaysUntilBilling(a.nextBilling) - getDaysUntilBilling(b.nextBilling));
-    }, [activeSubs, sortKey]);
+    }, [filteredSubs, sortKey]);
 
     return (
         <div className="space-y-4">
@@ -101,7 +114,7 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
                                 {t('currency')}{displayCycle === 'monthly' ? totalMonthly.toLocaleString() : totalYearly.toLocaleString()}
                             </motion.span>
                         </div>
-                        <p className="text-xs text-skin-subtext mt-2">{t('stats.active')}: {activeSubs.length}{t('stats.items')}</p>
+                        <p className="text-xs text-skin-subtext mt-2">{t('stats.active')}: {filteredSubs.length}{t('stats.items')}</p>
                     </div>
 
                     {/* Switchable Pie Chart */}
@@ -153,8 +166,15 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
                 </div>
             </div>
 
-            {/* Sorting */}
-            <div className="flex justify-end items-center px-1">
+            {/* Filter & Sort Controls */}
+            <div className="flex justify-between items-center px-1">
+                {/* Type Filter */}
+                <div className="flex bg-skin-base p-1 rounded-lg border border-skin-border">
+                    <button onClick={() => setFilterType('all')} className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${filterType === 'all' ? 'bg-skin-card shadow text-skin-text' : 'text-skin-subtext'}`}>All</button>
+                    <button onClick={() => setFilterType('subscription')} className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${filterType === 'subscription' ? 'bg-skin-card shadow text-skin-text' : 'text-skin-subtext'}`}>{t('type.subscription')}</button>
+                    <button onClick={() => setFilterType('education')} className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${filterType === 'education' ? 'bg-skin-card shadow text-skin-text' : 'text-skin-subtext'}`}>{t('type.education')}</button>
+                </div>
+
                 <select
                     value={sortKey}
                     onChange={(e) => setSortKey(e.target.value)}
@@ -163,6 +183,7 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
                     <option value="date">{t('sort.date')}</option>
                     <option value="price_desc">{t('sort.price')}</option>
                     <option value="satisfaction">{t('sort.satisfaction')}</option>
+                    <option value="category">{t('sort.category')}</option>
                 </select>
             </div>
 

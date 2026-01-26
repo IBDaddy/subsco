@@ -8,9 +8,10 @@ export const TRANSLATIONS = {
         cycle: { monthly: '月額', yearly: '年額', mo: '月', yr: '年' },
         tab: { list: '一覧', matrix: '分析', analysis: 'グラフ', history: '履歴', settings: '設定' },
         stats: { total: '合計支出', active: '契約中', savings: '削減余地', items: '件', chart: '内訳' },
-        sort: { date: '更新が近い順', price: '金額が高い順', satisfaction: '満足度が低い順' },
+        sort: { date: '更新が近い順', price: '金額が高い順', satisfaction: '満足度が低い順', category: 'カテゴリ順' },
         card: { expired: '期限切れ', today: '今日請求', daysLeft: 'あと{days}日' },
         status: { paused: '停止中', resume: '再開', stop: '停止' },
+        type: { subscription: 'サブスク', education: '固定費・教育費' },
         matrix: { axisX: '満足度', axisY: '頻度', description: '右下にあるサービスほど\n見直しの優先度が高いです' },
         analysis: {
             budgetCheck: '家計負担率チェック', incomeLabel: '手取り月収を入力', ratio: '固定費率',

@@ -16,6 +16,7 @@ export interface Subscription {
     frequency: Frequency;
     color: string;
     isActive: boolean;
+    type?: 'subscription' | 'education';
 }
 
 export interface HistoryItem {
