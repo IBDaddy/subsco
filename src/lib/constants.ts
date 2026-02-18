@@ -62,8 +62,9 @@ export const TRANSLATIONS = {
         cycle: { monthly: 'Monthly', yearly: 'Yearly', mo: 'mo', yr: 'yr' },
         tab: { list: 'List', matrix: 'Matrix', analysis: 'Charts', history: 'History', settings: 'Settings' },
         stats: { total: 'Total Expenses', active: 'Active', savings: 'Potential Savings', items: '', chart: 'Chart' },
-        sort: { date: 'Renew Date', price: 'Price: High to Low', satisfaction: 'Satisfaction: Low to High' },
+        sort: { date: 'Renew Date', price: 'Price: High to Low', satisfaction: 'Satisfaction: Low to High', category: 'Category' },
         card: { expired: 'Expired', today: 'Today', daysLeft: '{days} days' },
+        type: { subscription: 'Subscription', education: 'Fixed / Education' },
         status: { paused: 'Paused', resume: 'Resume', stop: 'Stop' },
         matrix: { axisX: 'Satisfaction', axisY: 'Frequency', description: 'Services in the bottom right\nare high priority for review' },
         analysis: {
@@ -76,7 +77,8 @@ export const TRANSLATIONS = {
             backup: 'Backup', backupDesc: 'Save data to a file.', btnBackup: 'Download Data',
             restore: 'Restore', restoreDesc: 'Restore data from a file.', restoreWarn: '*Overwrites current data', btnRestore: 'Select File',
             reset: 'Reset Data', btnReset: 'Delete All Data',
-            donation: 'Support Developer', btnDonation: 'Support the Developer (It helps!)'
+            donation: 'Support Developer', btnDonation: 'Support the Developer (It helps!)',
+            note: "Developer's Note (ibdaddy)"
         },
         modal: {
             add: 'New Service', edit: 'Edit Service', update: 'Update', addBtn: 'Add',

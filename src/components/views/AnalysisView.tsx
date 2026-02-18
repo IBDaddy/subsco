@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Wallet } from 'lucide-react';
-import { TRANSLATIONS, CATEGORIES, CATEGORY_COLORS, SATISFACTION_LEVELS, SATISFACTION_COLORS } from '../../lib/constants';
+import { CATEGORIES, CATEGORY_COLORS, SATISFACTION_LEVELS, SATISFACTION_COLORS } from '../../lib/constants';
 import { getMonthlyAmount } from '../../lib/utils';
+import { useTranslation } from '../../hooks/useTranslation';
 import { Subscription, Language } from '../../types';
 
 interface AnalysisViewProps {
@@ -15,8 +16,7 @@ interface AnalysisViewProps {
 type ChartType = 'category' | 'satisfaction';
 
 export const AnalysisView = ({ subscriptions, monthlyIncome, onIncomeChange, lang }: AnalysisViewProps) => {
-    const t = (path: string) => path.split('.').reduce((obj: any, key) => obj && obj[key], TRANSLATIONS[lang]) || path;
-    const getDisplayLabel = (key: string) => (TRANSLATIONS[lang].dataMap as any)[key] || key;
+    const { t, getDisplayLabel } = useTranslation(lang);
 
     const activeSubs = useMemo(() => subscriptions.filter(s => s.isActive), [subscriptions]);
     const totalMonthly = useMemo(() => activeSubs.reduce((sum, sub) => sum + getMonthlyAmount(sub), 0), [activeSubs]);
@@ -62,14 +62,14 @@ export const AnalysisView = ({ subscriptions, monthlyIncome, onIncomeChange, lan
 
     // BUDGET
     const budgetStatus = useMemo(() => {
-        if (!monthlyIncome || monthlyIncome <= 0) return null;
-        const ratio = (totalMonthly / (typeof monthlyIncome === 'number' ? monthlyIncome : parseInt(monthlyIncome as string))) * 100;
-        const msgs = TRANSLATIONS[lang].budget;
-        if (ratio < 5) return { status: 'Great!', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/50', bar: 'bg-emerald-500', message: msgs.great };
-        if (ratio < 10) return { status: 'Good', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/50', bar: 'bg-blue-500', message: msgs.good };
-        if (ratio < 15) return { status: 'Warning', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-900/50', bar: 'bg-amber-500', message: msgs.warning };
-        return { status: 'Danger', color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-100 dark:bg-rose-900/50', bar: 'bg-rose-500', message: msgs.danger };
-    }, [monthlyIncome, totalMonthly, lang]);
+        if (!monthlyIncome || Number(monthlyIncome) <= 0) return null;
+        const incomeNum = Number(monthlyIncome);
+        const ratio = (totalMonthly / incomeNum) * 100;
+        if (ratio < 5) return { status: 'Great!', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/50', bar: 'bg-emerald-500', message: t('budget.great') };
+        if (ratio < 10) return { status: 'Good', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/50', bar: 'bg-blue-500', message: t('budget.good') };
+        if (ratio < 15) return { status: 'Warning', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-900/50', bar: 'bg-amber-500', message: t('budget.warning') };
+        return { status: 'Danger', color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-100 dark:bg-rose-900/50', bar: 'bg-rose-500', message: t('budget.danger') };
+    }, [monthlyIncome, totalMonthly, t]);
 
     return (
         <div className="space-y-6">
@@ -88,7 +88,7 @@ export const AnalysisView = ({ subscriptions, monthlyIncome, onIncomeChange, lan
                         className="w-full px-3 py-2 bg-skin-base border border-skin-border rounded-lg text-sm font-bold focus:outline-none focus:ring-1 focus:ring-skin-primary"
                     />
                 </div>
-                {monthlyIncome !== '' && monthlyIncome > 0 && (
+                {monthlyIncome !== '' && Number(monthlyIncome) > 0 && (
                     <div className="bg-skin-base rounded-xl p-3">
                         <div className="flex justify-between text-xs font-bold mb-2">
                             <span>{t('analysis.ratio')}</span>

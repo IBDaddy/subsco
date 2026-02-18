@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { TRANSLATIONS, SATISFACTION_LEVELS, FREQUENCY_LEVELS } from '../../lib/constants';
-import { getMonthlyAmount } from '../../lib/utils';
+import { SATISFACTION_LEVELS, FREQUENCY_LEVELS } from '../../lib/constants';
+import { useTranslation } from '../../hooks/useTranslation';
 import { Subscription, Language, Satisfaction, Frequency } from '../../types';
 
 interface MatrixViewProps {
@@ -10,8 +10,7 @@ interface MatrixViewProps {
 }
 
 export const MatrixView = ({ subscriptions, onEdit, lang }: MatrixViewProps) => {
-    const t = (path: string) => path.split('.').reduce((obj: any, key) => obj && obj[key], TRANSLATIONS[lang]) || path;
-    const getDisplayLabel = (key: string) => (TRANSLATIONS[lang].dataMap as any)[key] || key;
+    const { t, getDisplayLabel } = useTranslation(lang);
 
     const activeSubs = useMemo(() => subscriptions.filter(s => s.isActive), [subscriptions]);
 

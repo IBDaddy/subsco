@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import localforage from 'localforage';
-import { Subscription, HistoryItem, Language } from '../types';
+import { Subscription, HistoryItem, BackupData, Language } from '../types';
 import { updateBillingDates } from '../lib/utils';
 import { DEFAULT_SUBSCRIPTIONS } from '../lib/constants';
 
@@ -17,7 +17,7 @@ interface SubscriptionContextType {
     deleteSubscription: (id: number) => void;
     toggleStatus: (id: number, resumeAmount?: number) => void;
     resetData: () => Promise<void>;
-    importData: (data: any) => void;
+    importData: (data: BackupData) => void;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -125,9 +125,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         await localforage.clear();
     };
 
-    const importData = (data: any) => {
-        if (data.subscriptions) setSubscriptions(updateBillingDates(data.subscriptions));
-        if (data.history) setHistory(data.history);
+    const importData = (data: BackupData) => {
+        setSubscriptions(updateBillingDates(data.subscriptions));
+        setHistory(data.history);
     };
 
     return (

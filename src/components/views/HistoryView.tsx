@@ -1,5 +1,5 @@
 import { History } from 'lucide-react';
-import { TRANSLATIONS } from '../../lib/constants';
+import { useTranslation } from '../../hooks/useTranslation';
 import { HistoryItem, Language } from '../../types';
 
 interface HistoryViewProps {
@@ -8,7 +8,7 @@ interface HistoryViewProps {
 }
 
 export const HistoryView = ({ history, lang }: HistoryViewProps) => {
-    const t = (path: string) => path.split('.').reduce((obj: any, key) => obj && obj[key], TRANSLATIONS[lang]) || path;
+    const { t } = useTranslation(lang);
 
     return (
         <div className="bg-skin-card rounded-2xl p-6 border border-skin-border shadow-skin">

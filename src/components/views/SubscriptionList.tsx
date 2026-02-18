@@ -2,8 +2,9 @@ import { useState, useMemo } from 'react';
 import { Pause, Play, Trash2, Edit2, ChevronUp, ChevronDown, Tag, Smile, Meh, Frown, Tv, Briefcase, Heart, GraduationCap, Home, MoreHorizontal } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { TRANSLATIONS, CATEGORIES, CATEGORY_COLORS, SATISFACTION_LEVELS, SATISFACTION_COLORS } from '../../lib/constants';
+import { CATEGORIES, CATEGORY_COLORS, SATISFACTION_LEVELS, SATISFACTION_COLORS } from '../../lib/constants';
 import { getDaysUntilBilling, getCancelScore, getCancelRecommendation, getUrgencyColor, getMonthlyAmount } from '../../lib/utils';
+import { useTranslation } from '../../hooks/useTranslation';
 import { Subscription, Language } from '../../types';
 
 interface SubscriptionListProps {
@@ -17,8 +18,7 @@ interface SubscriptionListProps {
 type ChartType = 'category' | 'satisfaction';
 
 export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStatus, lang }: SubscriptionListProps) => {
-    const t = (path: string) => path.split('.').reduce((obj: any, key) => obj && obj[key], TRANSLATIONS[lang]) || path;
-    const getDisplayLabel = (key: string) => (TRANSLATIONS[lang].dataMap as any)[key] || key;
+    const { t, getDisplayLabel } = useTranslation(lang);
 
     const [sortKey, setSortKey] = useState('date');
     const [filterType, setFilterType] = useState<'all' | 'subscription' | 'education'>('all');
@@ -38,7 +38,7 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
     const totalYearly = useMemo(() => filteredSubs.reduce((sum, sub) => sum + (sub.cycle === 'yearly' ? sub.amount : sub.amount * 12), 0), [filteredSubs]);
 
     // Icon Mapping
-    const CATEGORY_ICONS: Record<string, any> = {
+    const CATEGORY_ICONS: Record<string, React.ElementType> = {
         'エンタメ': Tv,
         '仕事': Briefcase,
         '健康': Heart,
