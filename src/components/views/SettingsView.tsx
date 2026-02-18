@@ -1,19 +1,20 @@
-import { Globe, Download, Upload, Trash2, Coffee, ExternalLink, Wallet } from 'lucide-react';
+import { Globe, Download, Upload, Trash2, ExternalLink } from 'lucide-react';
 import { useRef } from 'react';
-import { TRANSLATIONS } from '../../lib/constants';
-import { Subscription, HistoryItem, Language } from '../../types';
+import { useTranslation } from '../../hooks/useTranslation';
+import { validateImportData } from '../../lib/utils';
+import { Subscription, HistoryItem, BackupData, Language } from '../../types';
 
 interface SettingsViewProps {
     lang: Language;
     onLangChange: (lang: Language) => void;
     onReset: () => void;
-    onImport: (data: any) => void;
+    onImport: (data: BackupData) => void;
     subscriptions: Subscription[];
     history: HistoryItem[];
 }
 
 export const SettingsView = ({ lang, onLangChange, onReset, onImport, subscriptions, history }: SettingsViewProps) => {
-    const t = (path: string) => path.split('.').reduce((obj: any, key) => obj && obj[key], TRANSLATIONS[lang]) || path;
+    const { t } = useTranslation(lang);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleExport = () => {
@@ -37,13 +38,14 @@ export const SettingsView = ({ lang, onLangChange, onReset, onImport, subscripti
         reader.onload = (event) => {
             try {
                 const result = event.target?.result as string;
-                const data = JSON.parse(result);
-                if (Array.isArray(data.subscriptions)) {
-                    onImport(data);
+                const parsed = JSON.parse(result);
+                const validation = validateImportData(parsed);
+                if (validation.valid) {
+                    onImport(validation.data);
                 } else {
-                    alert('Error: Invalid file');
+                    alert(`Error: ${validation.error}`);
                 }
-            } catch (err) {
+            } catch {
                 alert('Error: Read failed');
             }
         };

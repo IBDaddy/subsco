@@ -1,5 +1,6 @@
-import { Subscription, Language } from '../types';
+import { Subscription, HistoryItem, BackupData, Language } from '../types';
 import { TRANSLATIONS } from './constants';
+import { CATEGORIES, SATISFACTION_LEVELS, FREQUENCY_LEVELS, PAYMENT_METHODS } from './constants';
 
 export const updateBillingDates = (subs: Subscription[]): Subscription[] => {
     const today = new Date();
@@ -48,4 +49,74 @@ export const getUrgencyColor = (days: number): string => {
     if (days <= 3) return 'text-rose-500 font-bold';
     if (days <= 7) return 'text-amber-500 font-bold';
     return 'text-emerald-500';
+};
+
+const VALID_CYCLES = ['monthly', 'yearly'] as const;
+const VALID_CATEGORIES = CATEGORIES as readonly string[];
+const VALID_SATISFACTIONS = SATISFACTION_LEVELS as readonly string[];
+const VALID_FREQUENCIES = FREQUENCY_LEVELS as readonly string[];
+const VALID_PAYMENT_METHODS = PAYMENT_METHODS as readonly string[];
+
+const isValidSubscription = (sub: unknown): sub is Subscription => {
+    if (typeof sub !== 'object' || sub === null) return false;
+    const s = sub as Record<string, unknown>;
+    return (
+        typeof s.id === 'number' &&
+        typeof s.name === 'string' && s.name.trim().length > 0 &&
+        typeof s.amount === 'number' && s.amount > 0 &&
+        typeof s.cycle === 'string' && VALID_CYCLES.includes(s.cycle as typeof VALID_CYCLES[number]) &&
+        typeof s.nextBilling === 'string' && !isNaN(new Date(s.nextBilling).getTime()) &&
+        typeof s.category === 'string' && VALID_CATEGORIES.includes(s.category) &&
+        typeof s.satisfaction === 'string' && VALID_SATISFACTIONS.includes(s.satisfaction) &&
+        typeof s.frequency === 'string' && VALID_FREQUENCIES.includes(s.frequency) &&
+        (s.paymentMethod === undefined || (typeof s.paymentMethod === 'string' && VALID_PAYMENT_METHODS.includes(s.paymentMethod))) &&
+        typeof s.color === 'string' &&
+        typeof s.isActive === 'boolean'
+    );
+};
+
+const isValidHistoryItem = (item: unknown): item is HistoryItem => {
+    if (typeof item !== 'object' || item === null) return false;
+    const h = item as Record<string, unknown>;
+    return (
+        typeof h.id === 'number' &&
+        typeof h.subId === 'number' &&
+        typeof h.subName === 'string' &&
+        typeof h.action === 'string' &&
+        typeof h.date === 'string' &&
+        typeof h.amount === 'number' &&
+        typeof h.cycle === 'string' && VALID_CYCLES.includes(h.cycle as typeof VALID_CYCLES[number])
+    );
+};
+
+export const validateImportData = (data: unknown): { valid: true; data: BackupData } | { valid: false; error: string } => {
+    if (typeof data !== 'object' || data === null) {
+        return { valid: false, error: 'Invalid data format' };
+    }
+
+    const d = data as Record<string, unknown>;
+
+    if (!Array.isArray(d.subscriptions)) {
+        return { valid: false, error: 'Missing subscriptions array' };
+    }
+
+    const invalidSubs = d.subscriptions.filter((s: unknown) => !isValidSubscription(s));
+    if (invalidSubs.length > 0) {
+        return { valid: false, error: `${invalidSubs.length} invalid subscription(s) found` };
+    }
+
+    const history = Array.isArray(d.history) ? d.history : [];
+    const invalidHistory = history.filter((h: unknown) => !isValidHistoryItem(h));
+    if (invalidHistory.length > 0) {
+        return { valid: false, error: `${invalidHistory.length} invalid history item(s) found` };
+    }
+
+    return {
+        valid: true,
+        data: {
+            subscriptions: d.subscriptions as Subscription[],
+            history: history as HistoryItem[],
+            exportedAt: typeof d.exportedAt === 'string' ? d.exportedAt : new Date().toISOString()
+        }
+    };
 };

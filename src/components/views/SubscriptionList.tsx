@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
-import { Pause, Play, Trash2, Edit2, ChevronUp, ChevronDown, Tag, Smile, Meh, Frown, Tv, Briefcase, Heart, GraduationCap, Home, MoreHorizontal } from 'lucide-react';
+import { Pause, Play, Trash2, Edit2, ChevronUp, ChevronDown, Tag, Smile, Meh, Frown, Tv, Briefcase, Heart, GraduationCap, Home, MoreHorizontal, Search, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { TRANSLATIONS, CATEGORIES, CATEGORY_COLORS, SATISFACTION_LEVELS, SATISFACTION_COLORS } from '../../lib/constants';
+import { CATEGORIES, CATEGORY_COLORS, SATISFACTION_LEVELS, SATISFACTION_COLORS, PAYMENT_METHOD_COLORS } from '../../lib/constants';
 import { getDaysUntilBilling, getCancelScore, getCancelRecommendation, getUrgencyColor, getMonthlyAmount } from '../../lib/utils';
-import { Subscription, Language } from '../../types';
+import { useTranslation } from '../../hooks/useTranslation';
+import { Subscription, Language, PaymentMethod } from '../../types';
 
 interface SubscriptionListProps {
     subscriptions: Subscription[];
@@ -17,11 +18,12 @@ interface SubscriptionListProps {
 type ChartType = 'category' | 'satisfaction';
 
 export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStatus, lang }: SubscriptionListProps) => {
-    const t = (path: string) => path.split('.').reduce((obj: any, key) => obj && obj[key], TRANSLATIONS[lang]) || path;
-    const getDisplayLabel = (key: string) => (TRANSLATIONS[lang].dataMap as any)[key] || key;
+    const { t, getDisplayLabel } = useTranslation(lang);
 
     const [sortKey, setSortKey] = useState('date');
     const [filterType, setFilterType] = useState<'all' | 'subscription' | 'education'>('all');
+    const [filterCategory, setFilterCategory] = useState<string>('all');
+    const [searchQuery, setSearchQuery] = useState('');
     const [showPaused, setShowPaused] = useState(false);
     const [displayCycle, setDisplayCycle] = useState<'monthly' | 'yearly'>('monthly');
     const [chartType, setChartType] = useState<ChartType>('category');
@@ -30,15 +32,29 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
     const pausedSubs = useMemo(() => subscriptions.filter(s => !s.isActive), [subscriptions]);
 
     const filteredSubs = useMemo(() => {
-        if (filterType === 'all') return activeSubs;
-        return activeSubs.filter(s => (s.type || 'subscription') === filterType);
-    }, [activeSubs, filterType]);
+        let subs = activeSubs;
+        if (filterType !== 'all') subs = subs.filter(s => (s.type || 'subscription') === filterType);
+        if (filterCategory !== 'all') subs = subs.filter(s => s.category === filterCategory);
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
+            subs = subs.filter(s => s.name.toLowerCase().includes(q));
+        }
+        return subs;
+    }, [activeSubs, filterType, filterCategory, searchQuery]);
 
     const totalMonthly = useMemo(() => filteredSubs.reduce((sum, sub) => sum + getMonthlyAmount(sub), 0), [filteredSubs]);
     const totalYearly = useMemo(() => filteredSubs.reduce((sum, sub) => sum + (sub.cycle === 'yearly' ? sub.amount : sub.amount * 12), 0), [filteredSubs]);
 
+    // Billing reminder: subscriptions due within 7 days
+    const upcomingSubs = useMemo(() => {
+        return activeSubs
+            .map(sub => ({ sub, days: getDaysUntilBilling(sub.nextBilling) }))
+            .filter(({ days }) => days >= 0 && days <= 7)
+            .sort((a, b) => a.days - b.days);
+    }, [activeSubs]);
+
     // Icon Mapping
-    const CATEGORY_ICONS: Record<string, any> = {
+    const CATEGORY_ICONS: Record<string, React.ElementType> = {
         'エンタメ': Tv,
         '仕事': Briefcase,
         '健康': Heart,
@@ -46,6 +62,12 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
         '生活': Home,
         'その他': MoreHorizontal
     };
+
+    // Active categories for filter chips
+    const activeCategories = useMemo(() => {
+        const cats = new Set(activeSubs.map(s => s.category));
+        return CATEGORIES.filter(c => cats.has(c));
+    }, [activeSubs]);
 
     // Chart Logic
     const chartData = useMemo(() => {
@@ -88,8 +110,41 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
         return list.sort((a, b) => getDaysUntilBilling(a.nextBilling) - getDaysUntilBilling(b.nextBilling));
     }, [filteredSubs, sortKey]);
 
+    const getPaymentBadgeColor = (pm?: PaymentMethod) => {
+        if (!pm) return '#64748b';
+        return PAYMENT_METHOD_COLORS[pm] || '#64748b';
+    };
+
     return (
         <div className="space-y-4">
+            {/* Billing Reminder Banner */}
+            {upcomingSubs.length > 0 && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-4">
+                    <h4 className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 mb-3">
+                        <AlertTriangle size={14} /> {t('billing.upcoming')}
+                    </h4>
+                    <div className="space-y-2">
+                        {upcomingSubs.map(({ sub, days }) => (
+                            <div key={sub.id} className="flex justify-between items-center text-sm">
+                                <span className="font-medium text-skin-text">{sub.name}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-skin-subtext">
+                                        {t('currency')}{sub.amount.toLocaleString()}
+                                    </span>
+                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${days === 0 ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/50 dark:text-rose-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400'}`}>
+                                        {days === 0 ? t('billing.todayBilling') : t('card.daysLeft').replace('{days}', days.toString())}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-amber-200 dark:border-amber-800 flex justify-between text-xs font-bold text-amber-700 dark:text-amber-400">
+                        <span>{t('billing.totalThisWeek')}</span>
+                        <span>{t('currency')}{upcomingSubs.reduce((sum, { sub }) => sum + sub.amount, 0).toLocaleString()}</span>
+                    </div>
+                </div>
+            )}
+
             {/* Top Stats Dashboard */}
             <div className="bg-skin-card rounded-skin shadow-skin p-6 mb-6 border border-skin-border relative overflow-hidden">
                 <div className="flex justify-between items-center relative z-10">
@@ -166,6 +221,40 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
                 </div>
             </div>
 
+            {/* Search Bar */}
+            <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-skin-subtext" />
+                <input
+                    type="text"
+                    placeholder={t('form.search')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-skin-card border border-skin-border rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-skin-primary transition-all"
+                />
+            </div>
+
+            {/* Category Filter Chips */}
+            {activeCategories.length > 1 && (
+                <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
+                    <button
+                        onClick={() => setFilterCategory('all')}
+                        className={`px-2.5 py-1 text-[10px] font-bold rounded-full whitespace-nowrap transition-all ${filterCategory === 'all' ? 'bg-skin-text text-skin-card' : 'bg-skin-base border border-skin-border text-skin-subtext'}`}
+                    >
+                        All
+                    </button>
+                    {activeCategories.map(cat => (
+                        <button
+                            key={cat}
+                            onClick={() => setFilterCategory(filterCategory === cat ? 'all' : cat)}
+                            className={`px-2.5 py-1 text-[10px] font-bold rounded-full whitespace-nowrap transition-all ${filterCategory === cat ? 'text-white' : 'bg-skin-base border border-skin-border text-skin-subtext'}`}
+                            style={filterCategory === cat ? { backgroundColor: CATEGORY_COLORS[cat] } : {}}
+                        >
+                            {getDisplayLabel(cat)}
+                        </button>
+                    ))}
+                </div>
+            )}
+
             {/* Filter & Sort Controls */}
             <div className="flex justify-between items-center px-1">
                 {/* Type Filter */}
@@ -216,8 +305,13 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
 
                                             <div>
                                                 <h3 className="font-bold text-base mb-0.5 leading-tight">{sub.name}</h3>
-                                                <p className="text-xs text-skin-subtext font-medium flex items-center gap-2">
+                                                <p className="text-xs text-skin-subtext font-medium flex items-center gap-2 flex-wrap">
                                                     {t('currency')}{sub.amount.toLocaleString()} <span className="opacity-60">/ {sub.cycle === 'monthly' ? t('cycle.mo') : t('cycle.yr')}</span>
+                                                    {sub.paymentMethod && (
+                                                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold text-white" style={{ backgroundColor: getPaymentBadgeColor(sub.paymentMethod) }}>
+                                                            {t(`paymentLabels.${sub.paymentMethod}`)}
+                                                        </span>
+                                                    )}
                                                     {rec && <span className={`px-1.5 py-0.5 rounded text-[9px] border ${rec.color.replace('bg-', 'border-').replace('text-', 'text-')} bg-transparent`}>{rec.label}</span>}
                                                 </p>
                                             </div>

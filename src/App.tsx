@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { List, ChartPie, History, Settings, Plus, Grid2x2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSubscriptionContext } from './context/SubscriptionContext';
-import { TRANSLATIONS } from './lib/constants';
+import { useTranslation } from './hooks/useTranslation';
 import { Modal } from './components/ui/Modal';
 import { SubscriptionForm } from './components/forms/SubscriptionForm';
 import { SubscriptionList } from './components/views/SubscriptionList';
@@ -10,7 +10,7 @@ import { AnalysisView } from './components/views/AnalysisView';
 import { MatrixView } from './components/views/MatrixView';
 import { HistoryView } from './components/views/HistoryView';
 import { SettingsView } from './components/views/SettingsView';
-import { Subscription } from './types';
+import { Subscription, BackupData } from './types';
 
 function App() {
     const {
@@ -30,7 +30,7 @@ function App() {
         isDanger: false, inputMode: false, inputValue: '', inputPlaceholder: '', confirmText: ''
     });
 
-    const t = (path: string) => path.split('.').reduce((obj: any, key) => obj && obj[key], TRANSLATIONS[lang]) || path;
+    const { t } = useTranslation(lang);
 
     // --- Handlers ---
     const handleOpenAdd = () => {
@@ -113,7 +113,7 @@ function App() {
         });
     };
 
-    const handleImport = (data: any) => {
+    const handleImport = (data: BackupData) => {
         setConfirmModal({
             isOpen: true,
             title: t('modal.restoreTitle'),
@@ -205,6 +205,7 @@ function App() {
                             {activeTab === 'analysis' && (
                                 <AnalysisView
                                     subscriptions={subscriptions}
+                                    history={history}
                                     monthlyIncome={monthlyIncome}
                                     onIncomeChange={setMonthlyIncome}
                                     lang={lang}

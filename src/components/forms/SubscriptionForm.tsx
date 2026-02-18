@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { TRANSLATIONS, PRESETS, CATEGORIES, COLOR_PALETTE, CATEGORY_COLORS, SATISFACTION_LEVELS, FREQUENCY_LEVELS } from '../../lib/constants';
-import { Subscription, Category, Satisfaction, Language } from '../../types';
+import { PRESETS, CATEGORIES, CATEGORY_COLORS, SATISFACTION_LEVELS, FREQUENCY_LEVELS, PAYMENT_METHODS, PAYMENT_METHOD_COLORS } from '../../lib/constants';
+import { useTranslation } from '../../hooks/useTranslation';
+import { Subscription, Category, Satisfaction, Cycle, PaymentMethod, Language } from '../../types';
 
 interface SubscriptionFormProps {
     initialData?: Subscription | null;
@@ -9,12 +10,11 @@ interface SubscriptionFormProps {
 }
 
 export const SubscriptionForm = ({ initialData, onSubmit, lang }: SubscriptionFormProps) => {
-    const t = (path: string) => path.split('.').reduce((obj: any, key) => obj && obj[key], TRANSLATIONS[lang]) || path;
-    const getDisplayLabel = (key: string) => (TRANSLATIONS[lang].dataMap as any)[key] || key;
+    const { t, getDisplayLabel } = useTranslation(lang);
 
     const [formData, setFormData] = useState<Omit<Subscription, 'id'>>({
         name: '', amount: 0, cycle: 'monthly', nextBilling: '', category: 'その他',
-        color: CATEGORY_COLORS['その他'], satisfaction: '中', frequency: '週1', isActive: true
+        color: CATEGORY_COLORS['その他'], satisfaction: '中', frequency: '週1', paymentMethod: 'credit', isActive: true
     });
 
     const [errors, setErrors] = useState<{ name?: string; amount?: string; nextBilling?: string }>({});
@@ -33,7 +33,7 @@ export const SubscriptionForm = ({ initialData, onSubmit, lang }: SubscriptionFo
 
         if (presetKey) {
             const p = PRESETS[presetKey];
-            setFormData(prev => ({ ...prev, name: val, amount: p.amount, category: p.category, color: p.color }));
+            setFormData(prev => ({ ...prev, name: val, amount: p.amount, category: p.category, color: p.color, ...(p.paymentMethod ? { paymentMethod: p.paymentMethod } : {}) }));
             setErrors(prev => ({ ...prev, name: undefined, amount: undefined }));
         } else {
             setFormData(prev => ({ ...prev, name: val }));
@@ -91,7 +91,7 @@ export const SubscriptionForm = ({ initialData, onSubmit, lang }: SubscriptionFo
                     <label className="text-xs font-bold text-skin-subtext mb-1 block">{t('form.cycle')}</label>
                     <select
                         value={formData.cycle}
-                        onChange={(e) => setFormData({ ...formData, cycle: e.target.value as any })}
+                        onChange={(e) => setFormData({ ...formData, cycle: e.target.value as Cycle })}
                         className="w-full px-3 py-2 bg-skin-base border border-skin-border rounded-lg text-sm"
                     >
                         <option value="monthly">{t('cycle.monthly')}</option>
@@ -162,6 +162,23 @@ export const SubscriptionForm = ({ initialData, onSubmit, lang }: SubscriptionFo
                             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${formData.frequency === f ? 'bg-skin-primary text-skin-primary-fg' : 'bg-skin-base border border-skin-border text-skin-subtext'}`}
                         >
                             {getDisplayLabel(f)}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div>
+                <label className="text-xs font-bold text-skin-subtext mb-1 block">{t('form.paymentMethod')}</label>
+                <div className="flex flex-wrap gap-2">
+                    {PAYMENT_METHODS.map(pm => (
+                        <button
+                            key={pm}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, paymentMethod: pm })}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${formData.paymentMethod === pm ? 'text-white' : 'bg-skin-base border border-skin-border text-skin-subtext'}`}
+                            style={formData.paymentMethod === pm ? { backgroundColor: PAYMENT_METHOD_COLORS[pm] } : {}}
+                        >
+                            {t(`paymentLabels.${pm}`)}
                         </button>
                     ))}
                 </div>
