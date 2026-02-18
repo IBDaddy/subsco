@@ -1,4 +1,4 @@
-import { Category, Satisfaction, Frequency, Subscription } from '../types';
+import { Category, Satisfaction, Frequency, PaymentMethod, Subscription } from '../types';
 
 export const TRANSLATIONS = {
     ja: {
@@ -15,7 +15,8 @@ export const TRANSLATIONS = {
         matrix: { axisX: '満足度', axisY: '頻度', description: '右下にあるサービスほど\n見直しの優先度が高いです' },
         analysis: {
             budgetCheck: '家計負担率チェック', incomeLabel: '手取り月収を入力', ratio: '固定費率',
-            category: 'カテゴリ別', satisfaction: '満足度別', ranking: '支出ランキング (カテゴリ)'
+            category: 'カテゴリ別', satisfaction: '満足度別', payment: '支払方法別',
+            ranking: '支出ランキング (カテゴリ)', trend: '月別トレンド', yearlyTotal: '年間合計'
         },
         history: { title: '活動履歴', noHistory: '履歴はありません', labels: { cancel: '解約', resume: '再契約', new: '新規契約' } },
         settings: {
@@ -37,12 +38,22 @@ export const TRANSLATIONS = {
         form: {
             name: 'サービス名', amount: '金額', cycle: 'サイクル', nextBilling: '次回請求',
             category: 'カテゴリ', satisfaction: '満足度', frequency: '使用頻度',
-            placeholderName: '例: Netflix', placeholderAmount: '0'
+            paymentMethod: '支払方法', placeholderName: '例: Netflix', placeholderAmount: '0',
+            search: 'サービス名で検索'
+        },
+        billing: {
+            upcoming: '今週の請求予定',
+            todayBilling: '今日',
+            totalThisWeek: '今週の合計'
         },
         dataMap: {
             'エンタメ': 'エンタメ', '仕事': '仕事', '健康': '健康', '教育': '教育', '生活': '生活', 'その他': 'その他',
             '高': '高', '中': '中', '低': '低',
             '毎日': '毎日', '週1': '週1', '月1': '月1', 'ほぼ未使用': 'ほぼ未使用'
+        },
+        paymentLabels: {
+            credit: 'クレジットカード', googleplay: 'Google Play', appstore: 'App Store',
+            bank: '銀行振込/現金', other: 'その他'
         },
         rec: {
             cancel: '解約検討', check: '要確認', wait: '様子見', keep: '継続'
@@ -69,7 +80,8 @@ export const TRANSLATIONS = {
         matrix: { axisX: 'Satisfaction', axisY: 'Frequency', description: 'Services in the bottom right\nare high priority for review' },
         analysis: {
             budgetCheck: 'Budget Health Check', incomeLabel: 'Monthly Net Income', ratio: 'Fixed Cost Ratio',
-            category: 'By Category', satisfaction: 'By Satisfaction', ranking: 'Spending Ranking (Category)'
+            category: 'By Category', satisfaction: 'By Satisfaction', payment: 'By Payment',
+            ranking: 'Spending Ranking (Category)', trend: 'Monthly Trend', yearlyTotal: 'Yearly Total'
         },
         history: { title: 'Activity Log', noHistory: 'No History', labels: { cancel: 'Canceled', resume: 'Resumed', new: 'New' } },
         settings: {
@@ -91,12 +103,22 @@ export const TRANSLATIONS = {
         form: {
             name: 'Service Name', amount: 'Amount', cycle: 'Cycle', nextBilling: 'Next Billing',
             category: 'Category', satisfaction: 'Satisfaction', frequency: 'Frequency',
-            placeholderName: 'e.g. Netflix', placeholderAmount: '0'
+            paymentMethod: 'Payment Method', placeholderName: 'e.g. Netflix', placeholderAmount: '0',
+            search: 'Search by name'
+        },
+        billing: {
+            upcoming: 'Upcoming This Week',
+            todayBilling: 'Today',
+            totalThisWeek: 'Total This Week'
         },
         dataMap: {
             'エンタメ': 'Entertainment', '仕事': 'Work', '健康': 'Health', '教育': 'Education', '生活': 'Life', 'その他': 'Other',
             '高': 'High', 'High': 'High', '中': 'Mid', 'Mid': 'Mid', '低': 'Low', 'Low': 'Low',
             '毎日': 'Daily', 'Daily': 'Daily', '週1': 'Weekly', 'Weekly': 'Weekly', '月1': 'Monthly', 'Monthly': 'Monthly', 'ほぼ未使用': 'Rarely', 'Rarely': 'Rarely'
+        },
+        paymentLabels: {
+            credit: 'Credit Card', googleplay: 'Google Play', appstore: 'App Store',
+            bank: 'Bank / Cash', other: 'Other'
         },
         rec: {
             cancel: 'Cancel?', check: 'Check', wait: 'Wait', keep: 'Keep'
@@ -115,23 +137,24 @@ interface Preset {
     amount: number;
     category: Category;
     color: string;
+    paymentMethod?: PaymentMethod;
 }
 
 export const PRESETS: Record<string, Preset> = {
-    'Netflix': { amount: 1490, category: 'エンタメ', color: '#64748b' },
+    'Netflix': { amount: 1490, category: 'エンタメ', color: '#64748b', paymentMethod: 'credit' },
     'Spotify': { amount: 980, category: 'エンタメ', color: '#10b981' },
-    'YouTube Premium': { amount: 1280, category: 'エンタメ', color: '#ef4444' },
-    'Amazon Prime': { amount: 600, category: '生活', color: '#0ea5e9' },
-    'Apple Music': { amount: 1080, category: 'エンタメ', color: '#f59e0b' },
-    'iCloud+': { amount: 130, category: '生活', color: '#0ea5e9' },
-    'ChatGPT Plus': { amount: 3000, category: '仕事', color: '#10b981' },
-    'Adobe CC': { amount: 7780, category: '仕事', color: '#ef4444' },
+    'YouTube Premium': { amount: 1280, category: 'エンタメ', color: '#ef4444', paymentMethod: 'googleplay' },
+    'Amazon Prime': { amount: 600, category: '生活', color: '#0ea5e9', paymentMethod: 'credit' },
+    'Apple Music': { amount: 1080, category: 'エンタメ', color: '#f59e0b', paymentMethod: 'appstore' },
+    'iCloud+': { amount: 130, category: '生活', color: '#0ea5e9', paymentMethod: 'appstore' },
+    'ChatGPT Plus': { amount: 3000, category: '仕事', color: '#10b981', paymentMethod: 'credit' },
+    'Adobe CC': { amount: 7780, category: '仕事', color: '#ef4444', paymentMethod: 'credit' },
     'DAZN': { amount: 4200, category: 'エンタメ', color: '#10b981' },
 };
 
 export const DEFAULT_SUBSCRIPTIONS: Subscription[] = [
-    { id: 1, name: 'Netflix', amount: 1490, cycle: 'monthly', nextBilling: '2026-02-20', category: 'エンタメ', color: '#64748b', satisfaction: '高', frequency: '週1', isActive: true },
-    { id: 2, name: 'Adobe CC', amount: 65760, cycle: 'yearly', nextBilling: '2026-03-15', category: '仕事', color: '#0ea5e9', satisfaction: '高', frequency: '毎日', isActive: true },
+    { id: 1, name: 'Netflix', amount: 1490, cycle: 'monthly', nextBilling: '2026-02-20', category: 'エンタメ', color: '#64748b', satisfaction: '高', frequency: '週1', paymentMethod: 'credit', isActive: true },
+    { id: 2, name: 'Adobe CC', amount: 65760, cycle: 'yearly', nextBilling: '2026-03-15', category: '仕事', color: '#0ea5e9', satisfaction: '高', frequency: '毎日', paymentMethod: 'credit', isActive: true },
 ];
 
 export const CATEGORIES: Category[] = ['エンタメ', '仕事', '健康', '教育', '生活', 'その他'];
@@ -150,3 +173,7 @@ export const SATISFACTION_COLORS: Record<Satisfaction, string> = { '高': '#10b9
 
 export const FREQUENCY_LEVELS: Frequency[] = ['毎日', '週1', '月1', 'ほぼ未使用'];
 
+export const PAYMENT_METHODS: PaymentMethod[] = ['credit', 'googleplay', 'appstore', 'bank', 'other'];
+export const PAYMENT_METHOD_COLORS: Record<PaymentMethod, string> = {
+    credit: '#6366f1', googleplay: '#10b981', appstore: '#0ea5e9', bank: '#f59e0b', other: '#64748b'
+};

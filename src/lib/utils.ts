@@ -1,6 +1,6 @@
 import { Subscription, HistoryItem, BackupData, Language } from '../types';
 import { TRANSLATIONS } from './constants';
-import { CATEGORIES, SATISFACTION_LEVELS, FREQUENCY_LEVELS } from './constants';
+import { CATEGORIES, SATISFACTION_LEVELS, FREQUENCY_LEVELS, PAYMENT_METHODS } from './constants';
 
 export const updateBillingDates = (subs: Subscription[]): Subscription[] => {
     const today = new Date();
@@ -55,6 +55,7 @@ const VALID_CYCLES = ['monthly', 'yearly'] as const;
 const VALID_CATEGORIES = CATEGORIES as readonly string[];
 const VALID_SATISFACTIONS = SATISFACTION_LEVELS as readonly string[];
 const VALID_FREQUENCIES = FREQUENCY_LEVELS as readonly string[];
+const VALID_PAYMENT_METHODS = PAYMENT_METHODS as readonly string[];
 
 const isValidSubscription = (sub: unknown): sub is Subscription => {
     if (typeof sub !== 'object' || sub === null) return false;
@@ -68,6 +69,7 @@ const isValidSubscription = (sub: unknown): sub is Subscription => {
         typeof s.category === 'string' && VALID_CATEGORIES.includes(s.category) &&
         typeof s.satisfaction === 'string' && VALID_SATISFACTIONS.includes(s.satisfaction) &&
         typeof s.frequency === 'string' && VALID_FREQUENCIES.includes(s.frequency) &&
+        (s.paymentMethod === undefined || (typeof s.paymentMethod === 'string' && VALID_PAYMENT_METHODS.includes(s.paymentMethod))) &&
         typeof s.color === 'string' &&
         typeof s.isActive === 'boolean'
     );

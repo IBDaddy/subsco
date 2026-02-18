@@ -205,6 +205,7 @@ function App() {
                             {activeTab === 'analysis' && (
                                 <AnalysisView
                                     subscriptions={subscriptions}
+                                    history={history}
                                     monthlyIncome={monthlyIncome}
                                     onIncomeChange={setMonthlyIncome}
                                     lang={lang}
