@@ -1,11 +1,12 @@
 export type Cycle = 'monthly' | 'yearly';
-export type Category = 'エンタメ' | '仕事' | '健康' | '教育' | '生活' | 'その他';
+export type Category = 'エンタメ' | '仕事' | '健康' | '教育' | '生活' | '保険' | '税金' | '通信' | 'その他';
 export type Satisfaction = '高' | '中' | '低';
 export type Frequency = '毎日' | '週1' | '月1' | 'ほぼ未使用';
 export type PaymentMethod = 'credit' | 'googleplay' | 'appstore' | 'bank' | 'other';
 export type Currency = 'JPY' | 'USD';
 export type Language = 'ja' | 'en';
 export type Theme = 'light' | 'dark' | 'system';
+export type ItemType = 'subscription' | 'fixed';
 
 export interface Subscription {
     id: number;
@@ -19,7 +20,7 @@ export interface Subscription {
     paymentMethod?: PaymentMethod;
     color: string;
     isActive: boolean;
-    type?: 'subscription' | 'education';
+    type?: ItemType;
 }
 
 export interface HistoryItem {

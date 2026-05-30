@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Pause, Play, Trash2, Edit2, ChevronUp, ChevronDown, Tag, Smile, Meh, Frown, Tv, Briefcase, Heart, GraduationCap, Home, MoreHorizontal, Search, AlertTriangle } from 'lucide-react';
+import { Pause, Play, Trash2, Edit2, ChevronUp, ChevronDown, Tag, Smile, Meh, Frown, Tv, Briefcase, Heart, GraduationCap, Home, MoreHorizontal, Search, AlertTriangle, Shield, Landmark, Wifi } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { CATEGORIES, CATEGORY_COLORS, SATISFACTION_LEVELS, SATISFACTION_COLORS, PAYMENT_METHOD_COLORS } from '../../lib/constants';
@@ -21,7 +21,7 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
     const { t, getDisplayLabel } = useTranslation(lang);
 
     const [sortKey, setSortKey] = useState('date');
-    const [filterType, setFilterType] = useState<'all' | 'subscription' | 'education'>('all');
+    const [filterType, setFilterType] = useState<'all' | 'subscription' | 'fixed'>('all');
     const [filterCategory, setFilterCategory] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [showPaused, setShowPaused] = useState(false);
@@ -60,6 +60,9 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
         '健康': Heart,
         '教育': GraduationCap,
         '生活': Home,
+        '保険': Shield,
+        '税金': Landmark,
+        '通信': Wifi,
         'その他': MoreHorizontal
     };
 
@@ -261,7 +264,7 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
                 <div className="flex bg-skin-base p-1 rounded-lg border border-skin-border">
                     <button onClick={() => setFilterType('all')} className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${filterType === 'all' ? 'bg-skin-card shadow text-skin-text' : 'text-skin-subtext'}`}>All</button>
                     <button onClick={() => setFilterType('subscription')} className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${filterType === 'subscription' ? 'bg-skin-card shadow text-skin-text' : 'text-skin-subtext'}`}>{t('type.subscription')}</button>
-                    <button onClick={() => setFilterType('education')} className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${filterType === 'education' ? 'bg-skin-card shadow text-skin-text' : 'text-skin-subtext'}`}>{t('type.education')}</button>
+                    <button onClick={() => setFilterType('fixed')} className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${filterType === 'fixed' ? 'bg-skin-card shadow text-skin-text' : 'text-skin-subtext'}`}>{t('type.fixed')}</button>
                 </div>
 
                 <select
@@ -281,8 +284,10 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
                     <AnimatePresence initial={false}>
                         {sortedSubs.map(sub => {
                             const days = getDaysUntilBilling(sub.nextBilling);
+                            const isFixedCost = sub.type === 'fixed';
                             const cancelScore = getCancelScore(sub);
-                            const rec = getCancelRecommendation(cancelScore, lang);
+                            // Fixed costs (insurance, taxes…) are mandatory → no cancel review badge
+                            const rec = isFixedCost ? null : getCancelRecommendation(cancelScore, lang);
                             const CategoryIcon = CATEGORY_ICONS[sub.category] || MoreHorizontal;
                             const categoryColor = CATEGORY_COLORS[sub.category] || '#94a3b8';
 
@@ -315,7 +320,7 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
                                                     )}
                                                     {rec && <span className={`px-1.5 py-0.5 rounded text-[9px] border ${rec.color}`}>{rec.label}</span>}
                                                 </p>
-                                                {cancelScore >= 4 && (
+                                                {!isFixedCost && cancelScore >= 4 && (
                                                     <p className="text-[10px] font-bold text-rose-500 mt-1">
                                                         {t('savings.yearlyHint').replace('{amount}', getYearlyAmount(sub).toLocaleString())}
                                                     </p>

@@ -33,7 +33,12 @@ export const SubscriptionForm = ({ initialData, onSubmit, lang }: SubscriptionFo
 
         if (presetKey) {
             const p = PRESETS[presetKey];
-            setFormData(prev => ({ ...prev, name: val, amount: p.amount, category: p.category, color: p.color, ...(p.paymentMethod ? { paymentMethod: p.paymentMethod } : {}) }));
+            setFormData(prev => ({
+                ...prev, name: val, amount: p.amount, category: p.category, color: p.color,
+                ...(p.paymentMethod ? { paymentMethod: p.paymentMethod } : {}),
+                ...(p.type ? { type: p.type } : {}),
+                ...(p.cycle ? { cycle: p.cycle } : {})
+            }));
             setErrors(prev => ({ ...prev, name: undefined, amount: undefined }));
         } else {
             setFormData(prev => ({ ...prev, name: val }));
@@ -121,10 +126,10 @@ export const SubscriptionForm = ({ initialData, onSubmit, lang }: SubscriptionFo
                 </button>
                 <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, type: 'education' })}
-                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${formData.type === 'education' ? 'bg-skin-card shadow text-skin-text' : 'text-skin-subtext'}`}
+                    onClick={() => setFormData({ ...formData, type: 'fixed' })}
+                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${formData.type === 'fixed' ? 'bg-skin-card shadow text-skin-text' : 'text-skin-subtext'}`}
                 >
-                    {t('type.education')}
+                    {t('type.fixed')}
                 </button>
             </div>
 

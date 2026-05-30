@@ -1,4 +1,4 @@
-import { Category, Satisfaction, Frequency, PaymentMethod, Subscription } from '../types';
+import { Category, Satisfaction, Frequency, PaymentMethod, Subscription, ItemType, Cycle } from '../types';
 
 export const TRANSLATIONS = {
     ja: {
@@ -11,7 +11,7 @@ export const TRANSLATIONS = {
         sort: { date: '更新が近い順', price: '金額が高い順', satisfaction: '満足度が低い順', category: 'カテゴリ順' },
         card: { expired: '期限切れ', today: '今日請求', daysLeft: 'あと{days}日' },
         status: { paused: '停止中', resume: '再開', stop: '停止' },
-        type: { subscription: 'サブスク', education: '固定費・教育費' },
+        type: { subscription: 'サブスク', fixed: '固定費' },
         matrix: { axisX: '満足度', axisY: '頻度', description: '右下にあるサービスほど\n見直しの優先度が高いです' },
         analysis: {
             budgetCheck: '家計負担率チェック', incomeLabel: '手取り月収を入力', ratio: '固定費率',
@@ -56,9 +56,15 @@ export const TRANSLATIONS = {
             enabled: '通知ON',
             blocked: 'ブロック中（端末設定から許可してください）'
         },
-        savings: { yearlyHint: '解約で年間 ¥{amount} 節約', vsLastMonth: '先月比' },
+        savings: {
+            yearlyHint: '解約で年間 ¥{amount} 節約', vsLastMonth: '先月比',
+            potentialTitle: '削減余地', potentialDesc: '見直し候補を解約した場合の年間節約額',
+            perYear: '/年', share: '固定費全体に占める割合', candidates: '見直し候補', none: '見直し候補はありません 🎉'
+        },
+        review: { matrix: 'マトリクス', list: '見直しリスト', listDesc: '解約・見直し候補を金額順に表示' },
+        fixed: { yearlyTotal: '年間固定費', monthlyTotal: '月換算', note: '固定費は見直し対象外として扱います' },
         dataMap: {
-            'エンタメ': 'エンタメ', '仕事': '仕事', '健康': '健康', '教育': '教育', '生活': '生活', 'その他': 'その他',
+            'エンタメ': 'エンタメ', '仕事': '仕事', '健康': '健康', '教育': '教育', '生活': '生活', '保険': '保険', '税金': '税金', '通信': '通信', 'その他': 'その他',
             '高': '高', '中': '中', '低': '低',
             '毎日': '毎日', '週1': '週1', '月1': '月1', 'ほぼ未使用': 'ほぼ未使用'
         },
@@ -86,7 +92,7 @@ export const TRANSLATIONS = {
         stats: { total: 'Total Expenses', active: 'Active', savings: 'Potential Savings', items: '', chart: 'Chart' },
         sort: { date: 'Renew Date', price: 'Price: High to Low', satisfaction: 'Satisfaction: Low to High', category: 'Category' },
         card: { expired: 'Expired', today: 'Today', daysLeft: '{days} days' },
-        type: { subscription: 'Subscription', education: 'Fixed / Education' },
+        type: { subscription: 'Subscription', fixed: 'Fixed Cost' },
         status: { paused: 'Paused', resume: 'Resume', stop: 'Stop' },
         matrix: { axisX: 'Satisfaction', axisY: 'Frequency', description: 'Services in the bottom right\nare high priority for review' },
         analysis: {
@@ -132,9 +138,15 @@ export const TRANSLATIONS = {
             enabled: 'Notifications ON',
             blocked: 'Blocked (allow in device settings)'
         },
-        savings: { yearlyHint: 'Save ¥{amount}/yr if canceled', vsLastMonth: 'vs last month' },
+        savings: {
+            yearlyHint: 'Save ¥{amount}/yr if canceled', vsLastMonth: 'vs last month',
+            potentialTitle: 'Savings Potential', potentialDesc: 'Yearly savings if you cancel the review candidates',
+            perYear: '/yr', share: 'Share of total fixed costs', candidates: 'Review candidates', none: 'No review candidates 🎉'
+        },
+        review: { matrix: 'Matrix', list: 'Review List', listDesc: 'Cancel / review candidates sorted by amount' },
+        fixed: { yearlyTotal: 'Yearly Fixed Costs', monthlyTotal: 'per month', note: 'Fixed costs are excluded from review' },
         dataMap: {
-            'エンタメ': 'Entertainment', '仕事': 'Work', '健康': 'Health', '教育': 'Education', '生活': 'Life', 'その他': 'Other',
+            'エンタメ': 'Entertainment', '仕事': 'Work', '健康': 'Health', '教育': 'Education', '生活': 'Life', '保険': 'Insurance', '税金': 'Tax', '通信': 'Telecom', 'その他': 'Other',
             '高': 'High', 'High': 'High', '中': 'Mid', 'Mid': 'Mid', '低': 'Low', 'Low': 'Low',
             '毎日': 'Daily', 'Daily': 'Daily', '週1': 'Weekly', 'Weekly': 'Weekly', '月1': 'Monthly', 'Monthly': 'Monthly', 'ほぼ未使用': 'Rarely', 'Rarely': 'Rarely'
         },
@@ -160,6 +172,8 @@ interface Preset {
     category: Category;
     color: string;
     paymentMethod?: PaymentMethod;
+    type?: ItemType;
+    cycle?: Cycle;
 }
 
 export const PRESETS: Record<string, Preset> = {
@@ -172,6 +186,16 @@ export const PRESETS: Record<string, Preset> = {
     'ChatGPT Plus': { amount: 3000, category: '仕事', color: '#10b981', paymentMethod: 'credit' },
     'Adobe CC': { amount: 7780, category: '仕事', color: '#ef4444', paymentMethod: 'credit' },
     'DAZN': { amount: 4200, category: 'エンタメ', color: '#10b981' },
+    // 固定費プリセット
+    'NHK受信料': { amount: 1100, category: '税金', color: '#ec4899', paymentMethod: 'bank', type: 'fixed' },
+    '自動車保険': { amount: 60000, category: '保険', color: '#8b5cf6', paymentMethod: 'credit', type: 'fixed', cycle: 'yearly' },
+    '生命保険': { amount: 8000, category: '保険', color: '#8b5cf6', paymentMethod: 'bank', type: 'fixed' },
+    '国民年金': { amount: 16980, category: '税金', color: '#ec4899', paymentMethod: 'bank', type: 'fixed' },
+    '携帯電話': { amount: 5000, category: '通信', color: '#14b8a6', paymentMethod: 'credit', type: 'fixed' },
+    '自宅インターネット': { amount: 5000, category: '通信', color: '#14b8a6', paymentMethod: 'credit', type: 'fixed' },
+    '電気': { amount: 8000, category: '生活', color: '#0ea5e9', paymentMethod: 'credit', type: 'fixed' },
+    'ガス': { amount: 5000, category: '生活', color: '#0ea5e9', paymentMethod: 'credit', type: 'fixed' },
+    '水道': { amount: 4000, category: '生活', color: '#0ea5e9', paymentMethod: 'bank', type: 'fixed' },
 };
 
 export const DEFAULT_SUBSCRIPTIONS: Subscription[] = [
@@ -179,7 +203,7 @@ export const DEFAULT_SUBSCRIPTIONS: Subscription[] = [
     { id: 2, name: 'Adobe CC', amount: 65760, cycle: 'yearly', nextBilling: '2026-03-15', category: '仕事', color: '#0ea5e9', satisfaction: '高', frequency: '毎日', paymentMethod: 'credit', isActive: true },
 ];
 
-export const CATEGORIES: Category[] = ['エンタメ', '仕事', '健康', '教育', '生活', 'その他'];
+export const CATEGORIES: Category[] = ['エンタメ', '仕事', '健康', '教育', '生活', '保険', '税金', '通信', 'その他'];
 export const COLOR_PALETTE = [
     '#64748b', '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981',
     '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e'
@@ -187,7 +211,8 @@ export const COLOR_PALETTE = [
 
 export const CATEGORY_COLORS: Record<string, string> = {
     'エンタメ': '#f43f5e', '仕事': '#3b82f6', '健康': '#10b981',
-    '教育': '#f59e0b', '生活': '#0ea5e9', 'その他': '#64748b'
+    '教育': '#f59e0b', '生活': '#0ea5e9', '保険': '#8b5cf6',
+    '税金': '#ec4899', '通信': '#14b8a6', 'その他': '#64748b'
 };
 
 export const SATISFACTION_LEVELS: Satisfaction[] = ['高', '中', '低'];
