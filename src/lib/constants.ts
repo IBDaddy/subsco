@@ -48,13 +48,20 @@ export const TRANSLATIONS = {
         },
         theme: { title: 'テーマ', light: 'ライト', dark: 'ダーク', system: '自動' },
         notify: {
-            title: '今月の請求予定 ¥{total}',
+            title: '請求リマインド ¥{total}',
             today: '今日',
             inDays: 'あと{days}日',
             settingLabel: '請求リマインド通知',
             enable: '通知を有効にする',
             enabled: '通知ON',
-            blocked: 'ブロック中（端末設定から許可してください）'
+            blocked: 'ブロック中（端末設定から許可してください）',
+            leadDaysLabel: '何日前に通知',
+            lead3: '3日前', lead7: '7日前', lead14: '14日前',
+            filterLabel: '通知する請求',
+            filterAll: 'すべて', filterYearly: '年払いのみ', filterLarge: '¥10,000以上'
+        },
+        eduAnalysis: {
+            title: '教育・習い事 コスパ分析', perMonth: '/月', costScore: 'コスト', keep: '継続推奨', check: '要確認', noItems: '教育・習い事の登録がありません'
         },
         savings: {
             yearlyHint: '解約で年間 ¥{amount} 節約', vsLastMonth: '先月比',
@@ -130,13 +137,20 @@ export const TRANSLATIONS = {
         },
         theme: { title: 'Theme', light: 'Light', dark: 'Dark', system: 'Auto' },
         notify: {
-            title: 'Billing this month ¥{total}',
+            title: 'Billing Reminder ¥{total}',
             today: 'Today',
             inDays: 'in {days}d',
             settingLabel: 'Billing Reminders',
             enable: 'Enable notifications',
             enabled: 'Notifications ON',
-            blocked: 'Blocked (allow in device settings)'
+            blocked: 'Blocked (allow in device settings)',
+            leadDaysLabel: 'Notify how many days before',
+            lead3: '3 days', lead7: '7 days', lead14: '14 days',
+            filterLabel: 'Notify for',
+            filterAll: 'All billings', filterYearly: 'Yearly only', filterLarge: '¥10,000+'
+        },
+        eduAnalysis: {
+            title: 'Education & Activities', perMonth: '/mo', costScore: 'Cost', keep: 'Keep', check: 'Review', noItems: 'No education items registered'
         },
         savings: {
             yearlyHint: 'Save ¥{amount}/yr if canceled', vsLastMonth: 'vs last month',

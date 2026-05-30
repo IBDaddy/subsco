@@ -1,5 +1,5 @@
-import { Subscription, Language } from '../types';
-import { getDaysUntilBilling } from './utils';
+import { Subscription, Language, NotifyLeadDays, NotifyFilter } from '../types';
+import { getDaysUntilBilling, getYearlyAmount } from './utils';
 import { TRANSLATIONS } from './constants';
 
 const LAST_NOTIFIED_KEY = 'last_notified_date';
@@ -19,20 +19,33 @@ export const requestNotificationPermission = async (): Promise<NotificationPermi
     }
 };
 
+const matchesFilter = (sub: Subscription, filter: NotifyFilter): boolean => {
+    if (filter === 'all') return true;
+    if (filter === 'yearly') return sub.cycle === 'yearly';
+    if (filter === 'large') return getYearlyAmount(sub) >= 10000;
+    return true;
+};
+
 /**
- * Fires a local notification summarizing billings due within the next 3 days.
- * Throttled to once per calendar day (per device) to avoid being noisy.
+ * Fires a local notification for billings due within the lead-time window.
+ * Throttled to once per calendar day per device.
  */
-export const notifyUpcomingBillings = (subscriptions: Subscription[], lang: Language): void => {
+export const notifyUpcomingBillings = (
+    subscriptions: Subscription[],
+    lang: Language,
+    leadDays: NotifyLeadDays = 3,
+    filter: NotifyFilter = 'all'
+): void => {
     if (!isNotificationSupported() || Notification.permission !== 'granted') return;
 
     const today = new Date().toISOString().split('T')[0];
     if (localStorage.getItem(LAST_NOTIFIED_KEY) === today) return;
 
     const upcoming = subscriptions
-        .filter(s => s.isActive)
+        .filter(s => s.isActive && matchesFilter(s, filter))
         .map(sub => ({ sub, days: getDaysUntilBilling(sub.nextBilling) }))
-        .filter(({ days }) => days >= 0 && days <= 3);
+        .filter(({ days }) => days >= 0 && days <= leadDays)
+        .sort((a, b) => a.days - b.days);
 
     if (upcoming.length === 0) return;
 

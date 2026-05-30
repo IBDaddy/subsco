@@ -14,8 +14,8 @@ import { Subscription, BackupData } from './types';
 
 function App() {
     const {
-        subscriptions, history, isLoaded, lang, theme, monthlyIncome,
-        setLang, setTheme, setMonthlyIncome,
+        subscriptions, history, isLoaded, lang, theme, monthlyIncome, notifyLeadDays, notifyFilter,
+        setLang, setTheme, setMonthlyIncome, setNotifyLeadDays, setNotifyFilter,
         addSubscription, updateSubscription, deleteSubscription,
         toggleStatus, resetData, importData
     } = useSubscriptionContext();
@@ -234,6 +234,10 @@ function App() {
                                     onLangChange={setLang}
                                     theme={theme}
                                     onThemeChange={setTheme}
+                                    notifyLeadDays={notifyLeadDays}
+                                    onNotifyLeadDaysChange={setNotifyLeadDays}
+                                    notifyFilter={notifyFilter}
+                                    onNotifyFilterChange={setNotifyFilter}
                                     onReset={handleResetClick}
                                     onImport={handleImport}
                                     subscriptions={subscriptions}

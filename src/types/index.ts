@@ -7,6 +7,8 @@ export type Currency = 'JPY' | 'USD';
 export type Language = 'ja' | 'en';
 export type Theme = 'light' | 'dark' | 'system';
 export type ItemType = 'subscription' | 'fixed';
+export type NotifyLeadDays = 3 | 7 | 14;
+export type NotifyFilter = 'all' | 'yearly' | 'large';
 
 export interface Subscription {
     id: number;

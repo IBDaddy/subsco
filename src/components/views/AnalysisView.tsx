@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { Wallet, CreditCard, Landmark } from 'lucide-react';
+import { Wallet, CreditCard, Landmark, GraduationCap } from 'lucide-react';
 import { CATEGORIES, CATEGORY_COLORS, SATISFACTION_LEVELS, SATISFACTION_COLORS, PAYMENT_METHODS, PAYMENT_METHOD_COLORS } from '../../lib/constants';
 import { getMonthlyAmount, getYearlyAmount } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -25,6 +25,23 @@ export const AnalysisView = ({ subscriptions, history, monthlyIncome, onIncomeCh
     const fixedSubs = useMemo(() => activeSubs.filter(s => s.type === 'fixed'), [activeSubs]);
     const fixedYearly = useMemo(() => fixedSubs.reduce((sum, s) => sum + getYearlyAmount(s), 0), [fixedSubs]);
     const fixedMonthly = useMemo(() => fixedSubs.reduce((sum, s) => sum + getMonthlyAmount(s), 0), [fixedSubs]);
+
+    // Education & activities: both '教育' category subscriptions and type==='fixed' edu items
+    const eduSubs = useMemo(
+        () => activeSubs.filter(s => s.category === '教育').sort((a, b) => getMonthlyAmount(b) - getMonthlyAmount(a)),
+        [activeSubs]
+    );
+    const eduMonthlyTotal = useMemo(() => eduSubs.reduce((sum, s) => sum + getMonthlyAmount(s), 0), [eduSubs]);
+
+    // Value score: high satisfaction = 0 penalty, low = 2; frequently used = 0 penalty, rarely = 3
+    const getEduValueTag = (sub: Subscription): { label: string; color: string } => {
+        const satScore: Record<string, number> = { '高': 0, '中': 1, '低': 2 };
+        const freqScore: Record<string, number> = { '毎日': 0, '週1': 1, '月1': 2, 'ほぼ未使用': 3 };
+        const score = (satScore[sub.satisfaction] ?? 1) + (freqScore[sub.frequency] ?? 1);
+        if (score <= 1) return { label: t('eduAnalysis.keep'), color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400' };
+        if (score <= 3) return { label: t('eduAnalysis.keep'), color: 'text-sky-600 bg-sky-50 dark:bg-sky-900/30 dark:text-sky-400' };
+        return { label: t('eduAnalysis.check'), color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400' };
+    };
 
     // State for Chart Type
     const [chartType, setChartType] = useState<ChartType>('satisfaction');
@@ -166,6 +183,44 @@ export const AnalysisView = ({ subscriptions, history, monthlyIncome, onIncomeCh
                     </div>
                 )}
             </div>
+
+            {/* Education & Activities Analysis */}
+            {eduSubs.length > 0 && (
+                <div className="bg-skin-card rounded-2xl p-5 border border-skin-border shadow-skin">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-bold flex items-center gap-2">
+                            <GraduationCap size={18} className="text-amber-500" /> {t('eduAnalysis.title')}
+                        </h3>
+                        <span className="text-xs font-bold text-skin-subtext">
+                            {t('currency')}{eduMonthlyTotal.toLocaleString()}{t('eduAnalysis.perMonth')}
+                        </span>
+                    </div>
+                    <div className="space-y-2">
+                        {eduSubs.map(sub => {
+                            const monthly = getMonthlyAmount(sub);
+                            const tag = getEduValueTag(sub);
+                            const barWidth = eduMonthlyTotal > 0 ? (monthly / eduMonthlyTotal) * 100 : 0;
+                            return (
+                                <div key={sub.id}>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span className="text-xs font-bold text-skin-text truncate">{sub.name}</span>
+                                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold shrink-0 ${tag.color}`}>{tag.label}</span>
+                                        </div>
+                                        <div className="text-right shrink-0 ml-2">
+                                            <span className="text-xs font-bold">{t('currency')}{monthly.toLocaleString()}</span>
+                                            <span className="text-[10px] text-skin-subtext">{t('eduAnalysis.perMonth')}</span>
+                                        </div>
+                                    </div>
+                                    <div className="w-full bg-skin-base rounded-full h-1.5 overflow-hidden">
+                                        <div className="h-full rounded-full bg-amber-400 transition-all duration-500" style={{ width: `${barWidth}%` }} />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* Yearly Fixed Costs Card */}
             {fixedSubs.length > 0 && (

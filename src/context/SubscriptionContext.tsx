@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import localforage from 'localforage';
-import { Subscription, HistoryItem, BackupData, Language, Theme } from '../types';
+import { Subscription, HistoryItem, BackupData, Language, Theme, NotifyLeadDays, NotifyFilter } from '../types';
 import { updateBillingDates } from '../lib/utils';
 import { DEFAULT_SUBSCRIPTIONS } from '../lib/constants';
 import { notifyUpcomingBillings } from '../lib/notifications';
@@ -12,9 +12,13 @@ interface SubscriptionContextType {
     lang: Language;
     theme: Theme;
     monthlyIncome: number | '';
+    notifyLeadDays: NotifyLeadDays;
+    notifyFilter: NotifyFilter;
     setLang: (lang: Language) => void;
     setTheme: (theme: Theme) => void;
     setMonthlyIncome: (income: number | '') => void;
+    setNotifyLeadDays: (days: NotifyLeadDays) => void;
+    setNotifyFilter: (filter: NotifyFilter) => void;
     addSubscription: (sub: Omit<Subscription, 'id'>) => void;
     updateSubscription: (sub: Subscription) => void;
     deleteSubscription: (id: number) => void;
@@ -31,6 +35,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     const [lang, setLang] = useState<Language>('ja');
     const [theme, setTheme] = useState<Theme>('system');
     const [monthlyIncome, setMonthlyIncome] = useState<number | ''>('');
+    const [notifyLeadDays, setNotifyLeadDays] = useState<NotifyLeadDays>(7);
+    const [notifyFilter, setNotifyFilter] = useState<NotifyFilter>('all');
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Load Data
@@ -42,6 +48,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
                 const savedLang = await localforage.getItem<Language>('language_pwa');
                 const savedTheme = await localforage.getItem<Theme>('theme_pwa');
                 const savedIncome = await localforage.getItem<number | ''>('monthly_income_pwa');
+                const savedLeadDays = await localforage.getItem<NotifyLeadDays>('notify_lead_days_pwa');
+                const savedNotifyFilter = await localforage.getItem<NotifyFilter>('notify_filter_pwa');
 
                 const loadedSubs = updateBillingDates(savedSubs || DEFAULT_SUBSCRIPTIONS);
                 setSubscriptions(loadedSubs);
@@ -50,11 +58,15 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
                 if (savedLang) setLang(savedLang);
                 if (savedTheme) setTheme(savedTheme);
                 if (savedIncome) setMonthlyIncome(savedIncome);
+                const leadDays = savedLeadDays ?? 7;
+                const filter = savedNotifyFilter ?? 'all';
+                if (savedLeadDays) setNotifyLeadDays(savedLeadDays);
+                if (savedNotifyFilter) setNotifyFilter(savedNotifyFilter);
 
                 setIsLoaded(true);
 
                 // Fire a once-per-day reminder for billings due soon (if permitted)
-                notifyUpcomingBillings(loadedSubs, savedLang || 'ja');
+                notifyUpcomingBillings(loadedSubs, savedLang || 'ja', leadDays, filter);
             } catch (err) {
                 console.error(err);
                 setIsLoaded(true);
@@ -69,6 +81,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => { if (isLoaded) localforage.setItem('language_pwa', lang); }, [lang, isLoaded]);
     useEffect(() => { if (isLoaded) localforage.setItem('theme_pwa', theme); }, [theme, isLoaded]);
     useEffect(() => { if (isLoaded) localforage.setItem('monthly_income_pwa', monthlyIncome); }, [monthlyIncome, isLoaded]);
+    useEffect(() => { if (isLoaded) localforage.setItem('notify_lead_days_pwa', notifyLeadDays); }, [notifyLeadDays, isLoaded]);
+    useEffect(() => { if (isLoaded) localforage.setItem('notify_filter_pwa', notifyFilter); }, [notifyFilter, isLoaded]);
 
     // Apply theme to <html>, following system preference when set to 'system'
     useEffect(() => {
@@ -159,8 +173,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
     return (
         <SubscriptionContext.Provider value={{
-            subscriptions, history, isLoaded, lang, theme, monthlyIncome,
-            setLang, setTheme, setMonthlyIncome,
+            subscriptions, history, isLoaded, lang, theme, monthlyIncome, notifyLeadDays, notifyFilter,
+            setLang, setTheme, setMonthlyIncome, setNotifyLeadDays, setNotifyFilter,
             addSubscription, updateSubscription, deleteSubscription, toggleStatus, resetData, importData
         }}>
             {children}
