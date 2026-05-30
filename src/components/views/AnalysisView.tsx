@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { Wallet, CreditCard } from 'lucide-react';
+import { Wallet, CreditCard, Landmark } from 'lucide-react';
 import { CATEGORIES, CATEGORY_COLORS, SATISFACTION_LEVELS, SATISFACTION_COLORS, PAYMENT_METHODS, PAYMENT_METHOD_COLORS } from '../../lib/constants';
-import { getMonthlyAmount } from '../../lib/utils';
+import { getMonthlyAmount, getYearlyAmount } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Subscription, HistoryItem, Language, PaymentMethod } from '../../types';
 
@@ -21,6 +21,10 @@ export const AnalysisView = ({ subscriptions, history, monthlyIncome, onIncomeCh
 
     const activeSubs = useMemo(() => subscriptions.filter(s => s.isActive), [subscriptions]);
     const totalMonthly = useMemo(() => activeSubs.reduce((sum, sub) => sum + getMonthlyAmount(sub), 0), [activeSubs]);
+
+    const fixedSubs = useMemo(() => activeSubs.filter(s => s.type === 'fixed'), [activeSubs]);
+    const fixedYearly = useMemo(() => fixedSubs.reduce((sum, s) => sum + getYearlyAmount(s), 0), [fixedSubs]);
+    const fixedMonthly = useMemo(() => fixedSubs.reduce((sum, s) => sum + getMonthlyAmount(s), 0), [fixedSubs]);
 
     // State for Chart Type
     const [chartType, setChartType] = useState<ChartType>('satisfaction');
@@ -162,6 +166,35 @@ export const AnalysisView = ({ subscriptions, history, monthlyIncome, onIncomeCh
                     </div>
                 )}
             </div>
+
+            {/* Yearly Fixed Costs Card */}
+            {fixedSubs.length > 0 && (
+                <div className="bg-skin-card rounded-2xl p-5 border border-skin-border shadow-skin">
+                    <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
+                        <Landmark size={18} className="text-violet-500" /> {t('fixed.yearlyTotal')}
+                    </h3>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-bold">{t('currency')}{fixedYearly.toLocaleString()}</span>
+                        <span className="text-xs text-skin-subtext font-bold">/ {lang === 'ja' ? '年' : 'yr'}</span>
+                        <span className="text-xs text-skin-subtext ml-auto">{t('fixed.monthlyTotal')}: {t('currency')}{fixedMonthly.toLocaleString()}/{lang === 'ja' ? '月' : 'mo'}</span>
+                    </div>
+                    <div className="mt-3 space-y-1.5">
+                        {fixedSubs
+                            .slice()
+                            .sort((a, b) => getYearlyAmount(b) - getYearlyAmount(a))
+                            .map(s => (
+                                <div key={s.id} className="flex justify-between items-center text-xs">
+                                    <span className="flex items-center gap-1.5 text-skin-text">
+                                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: CATEGORY_COLORS[s.category] || '#94a3b8' }} />
+                                        {s.name}
+                                    </span>
+                                    <span className="font-bold text-skin-subtext">{t('currency')}{getYearlyAmount(s).toLocaleString()}/{lang === 'ja' ? '年' : 'yr'}</span>
+                                </div>
+                            ))}
+                    </div>
+                    <p className="text-[10px] text-skin-subtext mt-3 leading-relaxed">{t('fixed.note')}</p>
+                </div>
+            )}
 
             {/* Payment Method Summary Card */}
             <div className="bg-skin-card rounded-2xl p-5 border border-skin-border shadow-skin">

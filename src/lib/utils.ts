@@ -5,7 +5,11 @@ import { CATEGORIES, SATISFACTION_LEVELS, FREQUENCY_LEVELS, PAYMENT_METHODS } fr
 export const updateBillingDates = (subs: Subscription[]): Subscription[] => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return subs.map(sub => {
+    return subs.map(rawSub => {
+        // Migrate legacy 'education' type to the new 'fixed' type
+        const legacyType = (rawSub as Subscription & { type?: string }).type;
+        const sub: Subscription = legacyType === 'education' ? { ...rawSub, type: 'fixed' } : rawSub;
+
         let billing = new Date(sub.nextBilling);
         if (isNaN(billing.getTime())) return sub;
         if (billing >= today) return sub;
@@ -30,6 +34,26 @@ export const getDaysUntilBilling = (date: string): number => {
 
 export const getMonthlyAmount = (sub: Subscription): number => sub.cycle === 'yearly' ? Math.round(sub.amount / 12) : sub.amount;
 export const getYearlyAmount = (sub: Subscription): number => sub.cycle === 'monthly' ? sub.amount * 12 : sub.amount;
+
+// Fixed costs (NHK, insurance, etc.) are mandatory and excluded from cancel review.
+export const isFixed = (sub: Subscription): boolean => sub.type === 'fixed';
+export const isSubscription = (sub: Subscription): boolean => sub.type !== 'fixed';
+
+/**
+ * Computes savings potential: subscriptions (not fixed costs) flagged as cancel
+ * candidates (high cancel score), with the yearly amount that could be saved.
+ */
+export const getSavingsPotential = (subs: Subscription[]) => {
+    const candidates = subs
+        .filter(s => s.isActive && isSubscription(s) && getCancelScore(s) >= 4)
+        .sort((a, b) => getYearlyAmount(b) - getYearlyAmount(a));
+    const yearlySavings = candidates.reduce((sum, s) => sum + getYearlyAmount(s), 0);
+    const totalActiveYearly = subs
+        .filter(s => s.isActive)
+        .reduce((sum, s) => sum + getYearlyAmount(s), 0);
+    const share = totalActiveYearly > 0 ? (yearlySavings / totalActiveYearly) * 100 : 0;
+    return { candidates, yearlySavings, totalActiveYearly, share };
+};
 
 export const getCancelScore = (sub: Subscription): number => {
     const satScore: Record<string, number> = { '高': 0, '中': 1, '低': 2 };
