@@ -196,7 +196,19 @@ export const AnalysisView = ({ subscriptions, history, monthlyIncome, onIncomeCh
             {/* Monthly Trend */}
             {trendData.length > 0 && (
                 <div className="bg-skin-card rounded-2xl p-5 border border-skin-border shadow-skin">
-                    <h3 className="text-sm font-bold mb-4">{t('analysis.trend')}</h3>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-bold">{t('analysis.trend')}</h3>
+                        {trendData.length >= 2 && (() => {
+                            const diff = trendData[trendData.length - 1].amount - trendData[trendData.length - 2].amount;
+                            if (diff === 0) return null;
+                            const up = diff > 0;
+                            return (
+                                <span className={`text-xs font-bold ${up ? 'text-rose-500' : 'text-emerald-500'}`}>
+                                    {t('savings.vsLastMonth')} {up ? '+' : '−'}{t('currency')}{Math.abs(diff).toLocaleString()}
+                                </span>
+                            );
+                        })()}
+                    </div>
                     <div className="w-full h-40">
                         <ResponsiveContainer>
                             <BarChart data={trendData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>

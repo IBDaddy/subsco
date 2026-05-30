@@ -3,7 +3,7 @@ import { Pause, Play, Trash2, Edit2, ChevronUp, ChevronDown, Tag, Smile, Meh, Fr
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { CATEGORIES, CATEGORY_COLORS, SATISFACTION_LEVELS, SATISFACTION_COLORS, PAYMENT_METHOD_COLORS } from '../../lib/constants';
-import { getDaysUntilBilling, getCancelScore, getCancelRecommendation, getUrgencyColor, getMonthlyAmount } from '../../lib/utils';
+import { getDaysUntilBilling, getCancelScore, getCancelRecommendation, getUrgencyColor, getMonthlyAmount, getYearlyAmount } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Subscription, Language, PaymentMethod } from '../../types';
 
@@ -281,7 +281,8 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
                     <AnimatePresence initial={false}>
                         {sortedSubs.map(sub => {
                             const days = getDaysUntilBilling(sub.nextBilling);
-                            const rec = getCancelRecommendation(getCancelScore(sub), lang);
+                            const cancelScore = getCancelScore(sub);
+                            const rec = getCancelRecommendation(cancelScore, lang);
                             const CategoryIcon = CATEGORY_ICONS[sub.category] || MoreHorizontal;
                             const categoryColor = CATEGORY_COLORS[sub.category] || '#94a3b8';
 
@@ -312,8 +313,13 @@ export const SubscriptionList = ({ subscriptions, onEdit, onDelete, onToggleStat
                                                             {t(`paymentLabels.${sub.paymentMethod}`)}
                                                         </span>
                                                     )}
-                                                    {rec && <span className={`px-1.5 py-0.5 rounded text-[9px] border ${rec.color.replace('bg-', 'border-').replace('text-', 'text-')} bg-transparent`}>{rec.label}</span>}
+                                                    {rec && <span className={`px-1.5 py-0.5 rounded text-[9px] border ${rec.color}`}>{rec.label}</span>}
                                                 </p>
+                                                {cancelScore >= 4 && (
+                                                    <p className="text-[10px] font-bold text-rose-500 mt-1">
+                                                        {t('savings.yearlyHint').replace('{amount}', getYearlyAmount(sub).toLocaleString())}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                         <div className={`text-xs font-bold text-right whitespace-nowrap ${getUrgencyColor(days)}`}>

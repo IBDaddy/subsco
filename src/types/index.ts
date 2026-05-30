@@ -5,6 +5,7 @@ export type Frequency = '毎日' | '週1' | '月1' | 'ほぼ未使用';
 export type PaymentMethod = 'credit' | 'googleplay' | 'appstore' | 'bank' | 'other';
 export type Currency = 'JPY' | 'USD';
 export type Language = 'ja' | 'en';
+export type Theme = 'light' | 'dark' | 'system';
 
 export interface Subscription {
     id: number;

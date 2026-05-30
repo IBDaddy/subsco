@@ -14,8 +14,8 @@ import { Subscription, BackupData } from './types';
 
 function App() {
     const {
-        subscriptions, history, isLoaded, lang, monthlyIncome,
-        setLang, setMonthlyIncome,
+        subscriptions, history, isLoaded, lang, theme, monthlyIncome,
+        setLang, setTheme, setMonthlyIncome,
         addSubscription, updateSubscription, deleteSubscription,
         toggleStatus, resetData, importData
     } = useSubscriptionContext();
@@ -83,9 +83,12 @@ function App() {
                 title: t('modal.resumeTitle'),
                 message: t('modal.resumeMsg'),
                 onConfirm: () => {
-                    const inputVal = document.querySelector<HTMLInputElement>('input[type="number"]')?.value || String(sub.amount);
-                    toggleStatus(id, parseInt(inputVal));
-                    closeConfirmModal();
+                    // Read the latest controlled input value from state (no DOM querying)
+                    setConfirmModal(prev => {
+                        const parsed = parseInt(String(prev.inputValue), 10);
+                        toggleStatus(id, Number.isNaN(parsed) ? sub.amount : parsed);
+                        return { ...prev, isOpen: false };
+                    });
                 },
                 confirmText: t('modal.resumeBtn'),
                 isDanger: false,
@@ -175,6 +178,7 @@ function App() {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={handleOpenAdd}
+                            aria-label={t('modal.add')}
                             className="w-10 h-10 bg-skin-primary text-skin-primary-fg rounded-full flex items-center justify-center shadow-lg"
                         >
                             <Plus size={20} />
@@ -228,6 +232,8 @@ function App() {
                                 <SettingsView
                                     lang={lang}
                                     onLangChange={setLang}
+                                    theme={theme}
+                                    onThemeChange={setTheme}
                                     onReset={handleResetClick}
                                     onImport={handleImport}
                                     subscriptions={subscriptions}
@@ -250,6 +256,8 @@ function App() {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
+                        aria-label={t(`tab.${tab.id}`)}
+                        aria-current={activeTab === tab.id ? 'page' : undefined}
                         className={`transition-all duration-300 relative ${activeTab === tab.id ? 'text-skin-text scale-110' : 'text-skin-subtext hover:text-skin-text'}`}
                     >
                         {tab.icon}

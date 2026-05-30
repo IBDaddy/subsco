@@ -39,8 +39,8 @@ export const getCancelScore = (sub: Subscription): number => {
 
 export const getCancelRecommendation = (score: number, lang: Language) => {
     const texts = TRANSLATIONS[lang].rec;
-    if (score >= 4) return { label: texts.cancel, color: 'bg-rose-100 text-rose-600 border-rose-200' };
-    if (score >= 3) return { label: texts.check, color: 'bg-amber-100 text-amber-700 border-amber-200' };
+    if (score >= 4) return { label: texts.cancel, color: 'bg-rose-100 text-rose-600 border-rose-200 dark:bg-rose-900/40 dark:text-rose-400 dark:border-rose-800' };
+    if (score >= 3) return { label: texts.check, color: 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/40 dark:text-amber-400 dark:border-amber-800' };
     return null;
 };
 
