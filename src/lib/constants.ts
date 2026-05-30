@@ -46,6 +46,17 @@ export const TRANSLATIONS = {
             todayBilling: '今日',
             totalThisWeek: '今週の合計'
         },
+        theme: { title: 'テーマ', light: 'ライト', dark: 'ダーク', system: '自動' },
+        notify: {
+            title: '今月の請求予定 ¥{total}',
+            today: '今日',
+            inDays: 'あと{days}日',
+            settingLabel: '請求リマインド通知',
+            enable: '通知を有効にする',
+            enabled: '通知ON',
+            blocked: 'ブロック中（端末設定から許可してください）'
+        },
+        savings: { yearlyHint: '解約で年間 ¥{amount} 節約', vsLastMonth: '先月比' },
         dataMap: {
             'エンタメ': 'エンタメ', '仕事': '仕事', '健康': '健康', '教育': '教育', '生活': '生活', 'その他': 'その他',
             '高': '高', '中': '中', '低': '低',
@@ -111,6 +122,17 @@ export const TRANSLATIONS = {
             todayBilling: 'Today',
             totalThisWeek: 'Total This Week'
         },
+        theme: { title: 'Theme', light: 'Light', dark: 'Dark', system: 'Auto' },
+        notify: {
+            title: 'Billing this month ¥{total}',
+            today: 'Today',
+            inDays: 'in {days}d',
+            settingLabel: 'Billing Reminders',
+            enable: 'Enable notifications',
+            enabled: 'Notifications ON',
+            blocked: 'Blocked (allow in device settings)'
+        },
+        savings: { yearlyHint: 'Save ¥{amount}/yr if canceled', vsLastMonth: 'vs last month' },
         dataMap: {
             'エンタメ': 'Entertainment', '仕事': 'Work', '健康': 'Health', '教育': 'Education', '生活': 'Life', 'その他': 'Other',
             '高': 'High', 'High': 'High', '中': 'Mid', 'Mid': 'Mid', '低': 'Low', 'Low': 'Low',

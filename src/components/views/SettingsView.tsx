@@ -1,21 +1,36 @@
-import { Globe, Download, Upload, Trash2, ExternalLink } from 'lucide-react';
-import { useRef } from 'react';
+import { Globe, Download, Upload, Trash2, ExternalLink, Sun, Moon, Monitor, Bell } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { validateImportData } from '../../lib/utils';
-import { Subscription, HistoryItem, BackupData, Language } from '../../types';
+import { getNotificationPermission, requestNotificationPermission, isNotificationSupported } from '../../lib/notifications';
+import { Subscription, HistoryItem, BackupData, Language, Theme } from '../../types';
 
 interface SettingsViewProps {
     lang: Language;
     onLangChange: (lang: Language) => void;
+    theme: Theme;
+    onThemeChange: (theme: Theme) => void;
     onReset: () => void;
     onImport: (data: BackupData) => void;
     subscriptions: Subscription[];
     history: HistoryItem[];
 }
 
-export const SettingsView = ({ lang, onLangChange, onReset, onImport, subscriptions, history }: SettingsViewProps) => {
+export const SettingsView = ({ lang, onLangChange, theme, onThemeChange, onReset, onImport, subscriptions, history }: SettingsViewProps) => {
     const { t } = useTranslation(lang);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [notifyPermission, setNotifyPermission] = useState<NotificationPermission>(getNotificationPermission());
+
+    const handleEnableNotifications = async () => {
+        const result = await requestNotificationPermission();
+        setNotifyPermission(result);
+    };
+
+    const THEME_OPTIONS: { value: Theme; icon: typeof Sun }[] = [
+        { value: 'light', icon: Sun },
+        { value: 'dark', icon: Moon },
+        { value: 'system', icon: Monitor },
+    ];
 
     const handleExport = () => {
         const data = { subscriptions, history, exportedAt: new Date().toISOString() };
@@ -71,6 +86,40 @@ export const SettingsView = ({ lang, onLangChange, onReset, onImport, subscripti
                 </div>
             </div>
 
+            {/* Theme Switch */}
+            <div className="bg-skin-card rounded-2xl p-4 border border-skin-border shadow-sm flex items-center justify-between">
+                <h3 className="font-bold text-skin-text text-sm flex items-center gap-3"><Sun size={18} /> {t('theme.title')}</h3>
+                <div className="flex gap-1 bg-skin-base p-1 rounded-full border border-skin-border">
+                    {THEME_OPTIONS.map(({ value, icon: Icon }) => (
+                        <button
+                            key={value}
+                            onClick={() => onThemeChange(value)}
+                            aria-label={t(`theme.${value}`)}
+                            aria-pressed={theme === value}
+                            className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 text-xs font-bold ${theme === value ? 'bg-skin-primary text-skin-primary-fg' : 'text-skin-subtext hover:text-skin-text'}`}
+                        >
+                            <Icon size={14} /> {t(`theme.${value}`)}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Notification Toggle */}
+            {isNotificationSupported() && (
+                <div className="bg-skin-card rounded-2xl p-4 border border-skin-border shadow-sm flex items-center justify-between">
+                    <h3 className="font-bold text-skin-text text-sm flex items-center gap-3"><Bell size={18} /> {t('notify.settingLabel')}</h3>
+                    {notifyPermission === 'granted' ? (
+                        <span className="text-xs font-bold text-emerald-500 flex items-center gap-1">{t('notify.enabled')}</span>
+                    ) : notifyPermission === 'denied' ? (
+                        <span className="text-[10px] text-skin-subtext text-right max-w-[50%]">{t('notify.blocked')}</span>
+                    ) : (
+                        <button onClick={handleEnableNotifications} className="px-3 py-1 text-xs rounded-full border bg-skin-primary text-skin-primary-fg border-skin-primary font-bold">
+                            {t('notify.enable')}
+                        </button>
+                    )}
+                </div>
+            )}
+
             <button onClick={handleExport} className="w-full bg-skin-card p-4 rounded-2xl border border-skin-border shadow-sm flex items-center justify-between text-sm font-bold hover:bg-skin-base transition-colors">
                 <span className="flex items-center gap-3"><Download size={18} /> {t('settings.backup')}</span>
             </button>
@@ -86,7 +135,7 @@ export const SettingsView = ({ lang, onLangChange, onReset, onImport, subscripti
                 <span className="flex items-center gap-3"><Trash2 size={18} /> {t('settings.reset')}</span>
             </button>
 
-            <p className="text-center text-[10px] text-skin-subtext mt-6">v11.0.0 Dashboard & Donations</p>
+            <p className="text-center text-[10px] text-skin-subtext mt-6">v12.0.0 Dark Mode & Reminders</p>
         </div>
     );
 };

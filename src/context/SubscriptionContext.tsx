@@ -1,16 +1,19 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import localforage from 'localforage';
-import { Subscription, HistoryItem, BackupData, Language } from '../types';
+import { Subscription, HistoryItem, BackupData, Language, Theme } from '../types';
 import { updateBillingDates } from '../lib/utils';
 import { DEFAULT_SUBSCRIPTIONS } from '../lib/constants';
+import { notifyUpcomingBillings } from '../lib/notifications';
 
 interface SubscriptionContextType {
     subscriptions: Subscription[];
     history: HistoryItem[];
     isLoaded: boolean;
     lang: Language;
+    theme: Theme;
     monthlyIncome: number | '';
     setLang: (lang: Language) => void;
+    setTheme: (theme: Theme) => void;
     setMonthlyIncome: (income: number | '') => void;
     addSubscription: (sub: Omit<Subscription, 'id'>) => void;
     updateSubscription: (sub: Subscription) => void;
@@ -26,6 +29,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [lang, setLang] = useState<Language>('ja');
+    const [theme, setTheme] = useState<Theme>('system');
     const [monthlyIncome, setMonthlyIncome] = useState<number | ''>('');
     const [isLoaded, setIsLoaded] = useState(false);
 
@@ -36,16 +40,21 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
                 const savedSubs = await localforage.getItem<Subscription[]>('subscriptions_pwa');
                 const savedHistory = await localforage.getItem<HistoryItem[]>('history_pwa');
                 const savedLang = await localforage.getItem<Language>('language_pwa');
+                const savedTheme = await localforage.getItem<Theme>('theme_pwa');
                 const savedIncome = await localforage.getItem<number | ''>('monthly_income_pwa');
 
-                if (savedSubs) setSubscriptions(updateBillingDates(savedSubs));
-                else setSubscriptions(updateBillingDates(DEFAULT_SUBSCRIPTIONS));
+                const loadedSubs = updateBillingDates(savedSubs || DEFAULT_SUBSCRIPTIONS);
+                setSubscriptions(loadedSubs);
 
                 if (savedHistory) setHistory(savedHistory);
                 if (savedLang) setLang(savedLang);
+                if (savedTheme) setTheme(savedTheme);
                 if (savedIncome) setMonthlyIncome(savedIncome);
 
                 setIsLoaded(true);
+
+                // Fire a once-per-day reminder for billings due soon (if permitted)
+                notifyUpcomingBillings(loadedSubs, savedLang || 'ja');
             } catch (err) {
                 console.error(err);
                 setIsLoaded(true);
@@ -58,7 +67,25 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => { if (isLoaded) localforage.setItem('subscriptions_pwa', subscriptions); }, [subscriptions, isLoaded]);
     useEffect(() => { if (isLoaded) localforage.setItem('history_pwa', history); }, [history, isLoaded]);
     useEffect(() => { if (isLoaded) localforage.setItem('language_pwa', lang); }, [lang, isLoaded]);
+    useEffect(() => { if (isLoaded) localforage.setItem('theme_pwa', theme); }, [theme, isLoaded]);
     useEffect(() => { if (isLoaded) localforage.setItem('monthly_income_pwa', monthlyIncome); }, [monthlyIncome, isLoaded]);
+
+    // Apply theme to <html>, following system preference when set to 'system'
+    useEffect(() => {
+        const root = document.documentElement;
+        const applyTheme = () => {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = theme === 'dark' || (theme === 'system' && prefersDark);
+            root.classList.toggle('dark', isDark);
+        };
+        applyTheme();
+
+        if (theme === 'system') {
+            const mq = window.matchMedia('(prefers-color-scheme: dark)');
+            mq.addEventListener('change', applyTheme);
+            return () => mq.removeEventListener('change', applyTheme);
+        }
+    }, [theme]);
 
     // Actions
     const addSubscription = (subData: Omit<Subscription, 'id'>) => {
@@ -132,8 +159,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
     return (
         <SubscriptionContext.Provider value={{
-            subscriptions, history, isLoaded, lang, monthlyIncome,
-            setLang, setMonthlyIncome,
+            subscriptions, history, isLoaded, lang, theme, monthlyIncome,
+            setLang, setTheme, setMonthlyIncome,
             addSubscription, updateSubscription, deleteSubscription, toggleStatus, resetData, importData
         }}>
             {children}

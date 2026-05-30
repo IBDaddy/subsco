@@ -45,7 +45,7 @@ export const MatrixView = ({ subscriptions, onEdit, lang }: MatrixViewProps) => 
                 <div className="grid grid-cols-4 gap-1 text-center">
                     {FREQUENCY_LEVELS.map(f => (
                         <div key={f} className="text-[10px] md:text-sm font-bold text-skin-text bg-skin-base rounded p-1 flex items-center justify-center leading-tight">
-                            {getDisplayLabel(f).replace('毎日', '毎日').replace('週1', '週1').replace('月1', '月1').replace('ほぼ未使用', '稀に')}
+                            {getDisplayLabel(f).replace('ほぼ未使用', '稀に')}
                         </div>
                     ))}
                 </div>
